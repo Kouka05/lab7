@@ -7,26 +7,24 @@ import Model.Quiz;
 
 import java.util.ArrayList;
 
-public class AdminService {
+public class QuizService {
 
-    public static boolean addQuizs(String CourseID, String LessonID, Quiz quiz){
+    public static boolean addQuizToLesson(String courseId, String lessonId, Quiz quiz) {
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-        for (Course c : courses){
-            if (c.getCourseId().equals(CourseID)){
-                for (Lesson l : c.getLessons()){
-                    if (l.getLessonId().equals(LessonID)){
+        for (Course c : courses) {
+            if (c.getCourseId().equals(courseId)) {
+                for (Lesson l : c.getLessons()) {
+                    if (l.getLessonId().equals(lessonId)) {
                         l.setQuiz(quiz);
                         JSONDatabaseManager.saveCourses(courses);
                         System.out.println("The quiz added successfully");
                         return true;
                     }
-
                 }
             }
         }
         System.out.println("The quiz didn't added successfully");
         return false;
-
     }
 
 }

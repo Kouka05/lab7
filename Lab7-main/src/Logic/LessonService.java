@@ -3,6 +3,8 @@ package Logic;
 import Database.JSONDatabaseManager;
 import Model.Course;
 import Model.Lesson;
+import Model.Quiz;
+
 import java.util.ArrayList;
 
 public class LessonService {
