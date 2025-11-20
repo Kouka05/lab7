@@ -398,11 +398,11 @@ public class InstructorDashboardFrame extends JFrame {
             String courseName = (String) coursesTable.getValueAt(selectedRow, 1);
 
             JDialog lessonDialog = new JDialog(this, "Add Lesson to " + courseName, true);
-            lessonDialog.setLayout(new BorderLayout());
             lessonDialog.setSize(500, 500);
             lessonDialog.setLocationRelativeTo(this);
 
-            JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+            JPanel mainPanel = new JPanel();
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
             mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
             JPanel titlePanel = new JPanel(new BorderLayout(5, 5));
@@ -424,10 +424,6 @@ public class InstructorDashboardFrame extends JFrame {
             resourcesArea.setLineWrap(true);
             JScrollPane resourcesScroll = new JScrollPane(resourcesArea);
             resourcesPanel.add(resourcesScroll, BorderLayout.CENTER);
-
-            mainPanel.add(titlePanel, BorderLayout.NORTH);
-            mainPanel.add(contentPanel, BorderLayout.CENTER);
-            mainPanel.add(resourcesPanel, BorderLayout.SOUTH);
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton saveButton = new JButton("Save Lesson");
@@ -451,7 +447,6 @@ public class InstructorDashboardFrame extends JFrame {
                 }
 
                 Lesson newLesson = new Lesson(null, lessonTitle, content, resources);
-
                 boolean success = LessonService.addLesson(courseId, newLesson);
                 if (success) {
                     JOptionPane.showMessageDialog(lessonDialog, "Lesson added successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -466,7 +461,11 @@ public class InstructorDashboardFrame extends JFrame {
 
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
-            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+            mainPanel.add(titlePanel);
+            mainPanel.add(contentPanel);
+            mainPanel.add(resourcesPanel);
+            mainPanel.add(buttonPanel);
 
             lessonDialog.add(mainPanel);
             lessonDialog.setVisible(true);
