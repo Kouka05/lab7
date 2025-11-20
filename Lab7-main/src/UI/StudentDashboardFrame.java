@@ -439,63 +439,68 @@ public class StudentDashboardFrame extends JFrame {
 
     private void markLessonComplete() {
         int selectedRow = coursesTable.getSelectedRow();
-        if (selectedRow >= 0) {
-            String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
-            String courseName = (String) coursesTable.getValueAt(selectedRow, 1);
-
-            ArrayList<Lesson> lessons = LessonService.getLessons(courseId);
-
-            if (lessons.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "No lessons available to mark as complete.",
-                        "No Lessons",
-                        JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-
-            String[] lessonTitles = lessons.stream()
-                    .map(Lesson::getTitle)
-                    .toArray(String[]::new);
-
-            String selectedLesson = (String) JOptionPane.showInputDialog(this,
-                    "Select lesson to mark as complete:",
-                    "Mark Lesson Complete",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    lessonTitles,
-                    lessonTitles[0]);
-
-            if (selectedLesson != null) {
-                String lessonId = null;
-                for (Lesson lesson : lessons) {
-                    if (lesson.getTitle().equals(selectedLesson)) {
-                        lessonId = lesson.getLessonId();
-                        break;
-                    }
-                }
-
-                if (lessonId != null) {
-                    boolean success = StudentService.markLessonCompleted(
-                            currentStudent.getUserId(), courseId, lessonId);
-
-                    if (success) {
-                        JOptionPane.showMessageDialog(this,
-                                "Lesson marked as complete! Progress updated.",
-                                "Success",
-                                JOptionPane.INFORMATION_MESSAGE);
-                        loadStudentData();
-                    } else {
-                        JOptionPane.showMessageDialog(this,
-                                "Failed to mark lesson as complete",
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            }
-        } else {
+        if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this,
                     "Please select a course first", "No Selection",
                     JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
+        ArrayList<Lesson> lessons = LessonService.getLessons(courseId);
+        if (lessons.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No lessons available to mark as complete.",
+                    "No Lessons",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        ArrayList<Lesson> incompleteLessons = new ArrayList<>();
+        for (Lesson lesson : lessons) {
+            if (!lesson.isCompleted()) {
+                incompleteLessons.add(lesson);
+            }
+        }
+        if (incompleteLessons.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "All lessons are already completed!", "No Lessons", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        String[] lessonTitles = incompleteLessons.stream()
+                .map(Lesson::getTitle)
+                .toArray(String[]::new);
+
+        String selectedLesson = (String) JOptionPane.showInputDialog(this,
+                "Select lesson to mark as complete:",
+                "Mark Lesson Complete",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                lessonTitles,
+                lessonTitles[0]);
+
+        if (selectedLesson == null) return;
+        String lessonId = null;
+        for (Lesson lesson : incompleteLessons) {
+            if (lesson.getTitle().equals(selectedLesson)) {
+                lessonId = lesson.getLessonId();
+                break;
+            }
+        }
+
+        if (lessonId != null) {
+            boolean success = StudentService.markLessonCompleted(
+                    currentStudent.getUserId(), courseId, lessonId);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this,
+                        "Lesson marked as complete! Progress updated.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                loadStudentData();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Lesson was already completed or failed to update",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import Database.JSONDatabaseManager;
 import Model.Course;
 import Model.Student;
 import Model.User;
+import Model.Lesson;
 import java.util.ArrayList;
 
 public class StudentService {
@@ -116,39 +117,27 @@ public class StudentService {
             System.out.println("No lessons in course");
             return false;
         }
-        int completedLessons = 0;
-        int currentProgress = student.getProgress().getOrDefault(courseId, 0);
-        int progressPerLesson = 100 / totalLessons;
-        int newProgress = Math.min(100, currentProgress + progressPerLesson);
-        student.updateProgress(courseId, newProgress);
-        JSONDatabaseManager.saveUsers(users);
-        System.out.println("Lesson " + lessonId + " marked completed for student " + studentId);
-        return true;
-    }
-    public static boolean removeStudentFromCourse(String courseId, String studentId) {
-        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-        ArrayList<User> users = JSONDatabaseManager.loadUsers();
-        boolean success = false;
-        for (Course c : courses) {
-            if (c.getCourseId().equals(courseId)) {
-                c.removeStudent(studentId);
-                success = true;
+        Lesson lessonCompleted = null;
+        for (Lesson lesson : course.getLessons()) {
+            if (lesson.getLessonId().equals(lessonId)) {
+                lessonCompleted = lesson;
                 break;
             }
         }
-        for (User u : users) {
-            if (u instanceof Student && u.getUserId().equals(studentId)) {
-                Student student = (Student) u;
-                student.dropCourse(courseId);
-                success = true;
-                break;
-            }
-        }
-        if (success) {
+        if (lessonCompleted == null) return false;
+        if (!lessonCompleted.isCompleted()) {
+            lessonCompleted.setCompleted(true);
+            int currentProgress = student.getProgress().getOrDefault(courseId, 0);
+            int progressPerLesson = 100 / totalLessons;
+            int newProgress = Math.min(100, currentProgress + progressPerLesson);
+            student.updateProgress(courseId, newProgress);
             JSONDatabaseManager.saveCourses(courses);
             JSONDatabaseManager.saveUsers(users);
-            System.out.println("Student " + studentId + " removed from course " + courseId);
+            System.out.println("Lesson " + lessonId + " marked completed for student " + studentId);
+            return true;
+        } else {
+            System.out.println("Lesson already completed");
+            return false;
         }
-        return success;
     }
 }

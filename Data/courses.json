@@ -1,0 +1,33 @@
+[ {
+  "courseId" : "C1",
+  "title" : "Math1",
+  "description" : "Math1",
+  "instructorId" : "I2",
+  "lessons" : [ {
+    "lessonId" : "L1",
+    "title" : "lesson1",
+    "content" : "nothing",
+    "resources" : [ "nothing" ],
+    "completed" : false
+  } ],
+  "students" : [ ]
+}, {
+  "courseId" : "C2",
+  "title" : "Physics",
+  "description" : "Nil",
+  "instructorId" : "I2",
+  "lessons" : [ {
+    "lessonId" : "L1",
+    "title" : "1",
+    "content" : "1",
+    "resources" : [ ],
+    "completed" : true
+  }, {
+    "lessonId" : "L2",
+    "title" : "2",
+    "content" : "2",
+    "resources" : [ ],
+    "completed" : true
+  } ],
+  "students" : [ "S1" ]
+} ]

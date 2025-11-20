@@ -1,12 +1,23 @@
 package Model;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Student.class, name = "student"),
+        @JsonSubTypes.Type(value = Instructor.class, name = "instructor")
+})
 public abstract class User {
     private String userId;
     private String username;
     private String email;
     private String passwordHash;
     private int role;
-
+    private String type;
     public static final int RoleStudent = 1;
     public static final int RoleInstructor = 2;
 
@@ -19,6 +30,14 @@ public abstract class User {
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public String getUserId() { return userId; }

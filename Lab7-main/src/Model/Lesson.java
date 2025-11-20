@@ -6,7 +6,7 @@ public class Lesson {
     private String title;
     private String content;
     private ArrayList<String> resources;
-
+    private boolean completed = false;
     public Lesson() {
         this.resources = new ArrayList<>();
     }
@@ -26,6 +26,14 @@ public class Lesson {
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
 
     public ArrayList<String> getResources() { return resources; }
     public void setResources(ArrayList<String> resources) {
