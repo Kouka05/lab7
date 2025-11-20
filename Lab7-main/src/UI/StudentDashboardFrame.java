@@ -12,7 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-
+import Logic.*;
 public class StudentDashboardFrame extends JFrame {
     private JTable coursesTable;
     private JTable availableCoursesTable;
@@ -359,16 +359,13 @@ public class StudentDashboardFrame extends JFrame {
             ArrayList<Lesson> lessons = LessonService.getLessons(courseId);
 
             if (lessons.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "No lessons available for this course yet.",
-                        "No Lessons",
-                        JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "No lessons available for this course yet.", "No Lessons", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
             JDialog lessonsDialog = new JDialog(this, "Lessons for " + courseName, true);
             lessonsDialog.setLayout(new BorderLayout());
-            lessonsDialog.setSize(700, 600);
+            lessonsDialog.setSize(800, 600);
             lessonsDialog.setLocationRelativeTo(this);
 
             DefaultListModel<String> listModel = new DefaultListModel<>();
@@ -399,8 +396,14 @@ public class StudentDashboardFrame extends JFrame {
             JScrollPane resourcesScroll = new JScrollPane(resourcesArea);
             resourcesPanel.add(resourcesScroll, BorderLayout.CENTER);
 
-            contentPanel.add(contentAreaPanel, BorderLayout.CENTER);
-            contentPanel.add(resourcesPanel, BorderLayout.SOUTH);
+            JPanel quizPanel = new JPanel();
+            quizPanel.setLayout(new BoxLayout(quizPanel, BoxLayout.Y_AXIS));
+            quizPanel.setBorder(BorderFactory.createTitledBorder("Quiz"));
+            JButton submitQuizButton = new JButton("Submit Quiz");
+
+            contentPanel.add(contentAreaPanel, BorderLayout.NORTH);
+            contentPanel.add(resourcesPanel, BorderLayout.CENTER);
+            contentPanel.add(quizPanel, BorderLayout.SOUTH);
 
             lessonsList.addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting()) {
@@ -417,6 +420,41 @@ public class StudentDashboardFrame extends JFrame {
                             resourcesText.append("No resources available for this lesson.");
                         }
                         resourcesArea.setText(resourcesText.toString());
+
+                        quizPanel.removeAll();
+                        Quiz lessonQuiz = selectedLesson.getQuiz();
+                        if (lessonQuiz != null && !lessonQuiz.getQuestions().isEmpty()) {
+                            ArrayList<JComboBox<String>> answerBoxes = new ArrayList<>();
+                            int qNum = 1;
+                            for (Question q : lessonQuiz.getQuestions()) {
+                                JLabel qLabel = new JLabel(qNum + ". " + q.getQuestion());
+                                quizPanel.add(qLabel);
+                                JComboBox<String> comboBox = new JComboBox<>(q.getOption().toArray(new String[0]));
+                                quizPanel.add(comboBox);
+                                answerBoxes.add(comboBox);
+                                qNum++;
+                            }
+
+                            submitQuizButton.addActionListener(ev -> {
+                                ArrayList<Integer> answers = new ArrayList<>();
+                                for (JComboBox<String> cb : answerBoxes) {
+                                    answers.add(cb.getSelectedIndex());
+                                }
+                                boolean success = QuizService.submitQuiz(currentStudent.getUserId(), courseId, selectedLesson.getLessonId(), answers);
+                                if (success) {
+                                    JOptionPane.showMessageDialog(lessonsDialog, "Quiz submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                                } else {
+                                    JOptionPane.showMessageDialog(lessonsDialog, "Failed to submit quiz.", "Error", JOptionPane.ERROR_MESSAGE);
+                                }
+                            });
+
+                            quizPanel.add(submitQuizButton);
+                        } else {
+                            quizPanel.add(new JLabel("No quiz available for this lesson."));
+                        }
+
+                        quizPanel.revalidate();
+                        quizPanel.repaint();
                     }
                 }
             });
@@ -431,11 +469,10 @@ public class StudentDashboardFrame extends JFrame {
             lessonsDialog.add(splitPane, BorderLayout.CENTER);
             lessonsDialog.setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this,
-                    "Please select a course first", "No Selection",
-                    JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course first", "No Selection", JOptionPane.WARNING_MESSAGE);
         }
     }
+
 
     private void markLessonComplete() {
         int selectedRow = coursesTable.getSelectedRow();
