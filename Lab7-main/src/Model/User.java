@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = Student.class, name = "student"),
-        @JsonSubTypes.Type(value = Instructor.class, name = "instructor")
+        @JsonSubTypes.Type(value = Instructor.class, name = "instructor"),
+        @JsonSubTypes.Type(value = Admin.class, name = "admin")
 })
 public abstract class User {
     private String userId;
@@ -20,7 +21,7 @@ public abstract class User {
     private String type;
     public static final int RoleStudent = 1;
     public static final int RoleInstructor = 2;
-
+    public static final int RoleAdmin = 3;
     public User() {
     }
 
@@ -57,11 +58,12 @@ public abstract class User {
 
     public boolean isStudent() { return this.role == RoleStudent; }
     public boolean isInstructor() { return this.role == RoleInstructor; }
-
+    public boolean isAdmin(){return this.role == RoleAdmin;}
     public String getRoleString() {
         switch (this.role) {
             case RoleStudent: return "Student";
             case RoleInstructor: return "Instructor";
+            case RoleAdmin: return "Admin";
             default: return "Unknown";
         }
     }

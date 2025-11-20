@@ -6,6 +6,10 @@ public class Course {
     private String title;
     private String description;
     private String instructorId;
+    private int approvalStatus = PENDING;
+    public static final int PENDING = 1;
+    public static final int APPROVED = 2;
+    public static final int REJECTED = 3;
     private ArrayList<Lesson> lessons;
     private ArrayList<String> students;
     public Course() {
@@ -40,6 +44,24 @@ public class Course {
     public ArrayList<String> getStudents() { return students; }
     public void setStudents(ArrayList<String> students) {
         this.students = students != null ? students : new ArrayList<>();
+    }
+
+    public int getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(int approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+    public String getApprovalStatusString()
+    {
+        switch(this.approvalStatus)
+        {
+            case PENDING: return "Pending";
+            case APPROVED: return "Approved";
+            case REJECTED: return "Rejected";
+            default: return "Unknown";
+        }
     }
     public void addLesson(Lesson lesson) {
         if (lesson != null && !lessons.contains(lesson)) {
