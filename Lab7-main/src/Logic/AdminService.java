@@ -32,7 +32,7 @@ public class AdminService {
         }
         return false;
     }
-    public static boolean rejectCourse(String courseId,String userId)
+    public static boolean rejectCourse(String courseId)
     {
         ArrayList<Course> courses = getPendingCourses();
         for(Course c :courses)

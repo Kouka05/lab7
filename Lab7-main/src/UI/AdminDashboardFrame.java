@@ -96,11 +96,87 @@ public class AdminDashboardFrame extends JFrame{
         buttonPanel.add(approved);
         buttonPanel.add(rejected);
         buttonPanel.add(refreshed);
-
+        coursePanel.add(buttonPanel,BorderLayout.SOUTH);
+        return coursePanel;
     }
-    private loadAdminData()
-    {
 
+    private void loadAdminData()
+    {
+        welcomeLabel.setText("Welcome, " + currentAdmin.getUsername()+"!");
+        refreshCourseTable();
+    }
+    private void approveSelectedCourse()
+    {
+        int selected = coursesTable.getSelectedRow();
+        if(selected>=0)
+        {
+            String courseId = (String) coursesTable.getValueAt(selected,0);
+            boolean flag = AdminService.approveCourse(courseId);
+            if(flag)
+            {
+                JOptionPane.showMessageDialog(this,"Course approved successfully!","Success",JOptionPane.INFORMATION_MESSAGE);
+                refreshCourseTable();
+            }
+            else
+            {
+                JOptionPane.showMessageDialog(this,"Course is not pending!","Failed",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(this,"Please select a course first","No selection",JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    private void rejectSelectedCourse()
+    {
+        int selected = coursesTable.getSelectedRow();
+        if(selected>=0)
+        {
+            String courseId = (String) coursesTable.getValueAt(selected,0);
+            boolean flag = AdminService.rejectCourse(courseId);
+            if(flag)
+            {
+                JOptionPane.showMessageDialog(this,"Course rejected successfully!","Success",JOptionPane.INFORMATION_MESSAGE);
+                refreshCourseTable();
+            }
+            else
+            {
+                JOptionPane.showMessageDialog(this,"Course is not pending!","Failed",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(this,"Please select a course first","No selection",JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    private void refreshCourseTable()
+    {
+        DefaultTableModel model = (DefaultTableModel) coursesTable.getModel();
+        model.setRowCount(0);
+
+        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+        ArrayList<User> users = JSONDatabaseManager.loadUsers();
+        for(Course c: courses)
+        {
+            String InstructorName = "Nil";
+            for(User user:users)
+            {
+                if(user.getUserId().equals(c.getInstructorId()))
+                {
+                    InstructorName = user.getUsername();
+                    break;
+                }
+            }
+            model.addRow(new Object[]
+                    {
+                            c.getCourseId(),
+                            c.getTitle(),
+                            InstructorName,
+                            c.getStudents().size(),
+                            c.getLessons().size(),
+                            c.getApprovalStatusString()
+                    });
+        }
     }
     private void styleHeaderButton(JButton button) {
         button.setFont(new Font("Arial", Font.BOLD, 12));
