@@ -54,6 +54,8 @@ public class JSONDatabaseManager {
                 } else if (u instanceof Instructor) {
                     ((Instructor) u).setType("instructor");
                 }
+                else
+                    ((Admin) u).setType("admin");
             }
             mapper.writeValue(new File(USERS_FILE), users);
         } catch (IOException e) {

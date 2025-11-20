@@ -138,7 +138,11 @@ public class LoginFrame extends JFrame {
                     if (loggedInUser != null) {
                         if (loggedInUser.isInstructor()) {
                             new InstructorDashboardFrame(loggedInUser).setVisible(true);
-                        } else {
+                        }
+                        else if(loggedInUser.isAdmin()) {
+                                new AdminDashboardFrame(loggedInUser).setVisible(true);
+                            }
+                        else {
                             new StudentDashboardFrame(loggedInUser).setVisible(true);
                         }
                         dispose();

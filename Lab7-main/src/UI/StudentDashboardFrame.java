@@ -252,7 +252,7 @@ public class StudentDashboardFrame extends JFrame {
         DefaultTableModel model = (DefaultTableModel) availableCoursesTable.getModel();
         model.setRowCount(0);
 
-        ArrayList<Course> allCourses = CourseService.getAllCourses();
+        ArrayList<Course> allCourses = CourseService.getApprovedCourses();
         ArrayList<String> enrolledCourses = currentStudent.getEnrolledCourses();
 
         for (Course course : allCourses) {
@@ -302,7 +302,7 @@ public class StudentDashboardFrame extends JFrame {
                     JOptionPane.showMessageDialog(this,
                             "Successfully enrolled in: " + courseName, "Success",
                             JOptionPane.INFORMATION_MESSAGE);
-                    loadStudentData(); // Refresh all data
+                    loadStudentData();
                 } else {
                     JOptionPane.showMessageDialog(this,
                             "Failed to enroll in course", "Error",

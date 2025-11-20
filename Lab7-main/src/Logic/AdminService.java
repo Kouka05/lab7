@@ -18,13 +18,11 @@ public class AdminService {
     }
     public static boolean approveCourse(String courseId)
     {
-        ArrayList<Course> courses = getPendingCourses();
+        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
         for(Course c :courses)
         {
-            if(c.getCourseId().equals(courseId))
+            if(c.getCourseId().equals(courseId)&&c.getApprovalStatus()==Course.PENDING)
             {
-                if(!(c.getApprovalStatus()==Course.PENDING))
-                    return false;
                 c.setApprovalStatus(Course.APPROVED);
                 updateCourses(courses);
                 return true;
@@ -34,13 +32,11 @@ public class AdminService {
     }
     public static boolean rejectCourse(String courseId)
     {
-        ArrayList<Course> courses = getPendingCourses();
+        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
         for(Course c :courses)
         {
-            if(c.getCourseId().equals(courseId))
+            if(c.getCourseId().equals(courseId)&&c.getApprovalStatus()==Course.PENDING)
             {
-                if(!(c.getApprovalStatus()==Course.PENDING))
-                    return false;
                 c.setApprovalStatus(Course.REJECTED);
                 updateCourses(courses);
                 return true;

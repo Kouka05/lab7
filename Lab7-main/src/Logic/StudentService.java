@@ -73,6 +73,9 @@ public class StudentService {
         for (Course c : courses) {
             if (c.getCourseId().equals(courseId)) {
                 c.removeStudent(studentId);
+                for(Lesson l : c.getLessons()){
+                    l.setCompleted(false);
+                }
                 success = true;
                 break;
             }
@@ -133,8 +136,8 @@ public class StudentService {
         if (!lessonCompleted.isCompleted()) {
             lessonCompleted.setCompleted(true);
             int currentProgress = student.getProgress().getOrDefault(courseId, 0);
-            int progressPerLesson = 100 / totalLessons;
-            int newProgress = Math.min(100, currentProgress + progressPerLesson);
+            double progressPerLesson = 100.0 / totalLessons;
+            int newProgress = Math.min(100, (int)Math.round(currentProgress + progressPerLesson));
             student.updateProgress(courseId, newProgress);
             JSONDatabaseManager.saveCourses(courses);
             JSONDatabaseManager.saveUsers(users);
