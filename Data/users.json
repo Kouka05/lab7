@@ -5,85 +5,8 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
+  "admin" : true,
   "student" : false,
   "instructor" : false,
-  "admin" : true
-}, {
-  "userId" : "S2",
-  "username" : "ahmed",
-  "email" : "ahmed@gmail.com",
-  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-  "role" : 1,
-  "type" : "student",
-  "enrolledCourses" : [ "C1", "C3" ],
-  "progress" : {
-    "C1" : 0,
-    "C3" : 0
-  },
-  "roleString" : "Student",
-  "student" : true,
-  "instructor" : false,
-  "admin" : false
-}, {
-  "userId" : "I3",
-  "username" : "mohamed",
-  "email" : "mohamed@gmail.com",
-  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-  "role" : 2,
-  "type" : "instructor",
-  "createdCourses" : [ "C1", "C2", "C3", "C4", "C5" ],
-  "roleString" : "Instructor",
-  "student" : false,
-  "instructor" : true,
-  "admin" : false
-}, {
-  "userId" : "A1",
-  "username" : "admin",
-  "email" : "admin@gmail.com",
-  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-  "role" : 3,
-  "type" : "admin",
-  "roleString" : "Admin",
-  "student" : false,
-  "instructor" : false,
-  "admin" : true
-}, {
-  "userId" : "A1",
-  "username" : "admin",
-  "email" : "admin@gmail.com",
-  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-  "role" : 3,
-  "type" : "admin",
-  "roleString" : "Admin",
-  "student" : false,
-  "instructor" : false,
-  "admin" : true
-}, {
-  "userId" : "A1",
-  "username" : "admin",
-  "email" : "admin@gmail.com",
-  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-  "role" : 3,
-  "type" : "admin",
-  "roleString" : "Admin",
-  "student" : false,
-  "instructor" : false,
-  "admin" : true
-}, {
-  "userId" : "S7",
-  "username" : "samy",
-  "email" : "samy@gmail.com",
-  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
-  "role" : 1,
-  "type" : "student",
-  "enrolledCourses" : [ "C1", "C3" ],
-  "progress" : {
-    "C1" : 99,
-    "C3" : 100
-  },
-  "roleString" : "Student",
-  "student" : true,
-  "instructor" : false,
-  "admin" : false
+  "roleString" : "Admin"
 } ]
