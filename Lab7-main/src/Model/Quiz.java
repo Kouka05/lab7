@@ -6,12 +6,12 @@ public class Quiz {
 private ArrayList<Question> questions;
     private boolean completed=false;
     private int attemps;
-    private int score;
+    private float score;
 public Quiz(){
     this.questions=new ArrayList<>();
 }
 
-    public Quiz(ArrayList<Question> questions, int score, int attemps, boolean completed) {
+    public Quiz(ArrayList<Question> questions, float score, int attemps, boolean completed) {
         this.questions = questions;
         this.score = score;
         this.attemps = attemps;
@@ -26,7 +26,7 @@ public Quiz(){
         return completed;
     }
 
-    public int getScore() {
+    public float getScore() {
         return score;
     }
 
@@ -46,7 +46,7 @@ public Quiz(){
         this.attemps = attemps;
     }
 
-    public void setScore(int score) {
+    public void setScore(float score) {
         this.score = score;
     }
     public void addQuestion(Question question) {
