@@ -7,13 +7,18 @@ public class Admin extends User{
     public Admin(String userId, String username, String email, String passwordHash, int role) {
         super(userId, username, email, passwordHash, role);
     }
-    public String reviewCourse(String CourseId)
+    public Admin()
+    {
+        super();
+    }
+    public int reviewCourse(String CourseId)
     {
         for(Course c: JSONDatabaseManager.loadCourses())
         {
             if(c.getCourseId().equals(CourseId))
-                return c.getApprovalStatusString();
+                return c.getApprovalStatus();
         }
-        return null;
+        return Course.PENDING;
     }
+
 }

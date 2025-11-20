@@ -157,9 +157,31 @@ public class CourseService {
     public static ArrayList<Course> getAllCourses() {
         return JSONDatabaseManager.loadCourses();
     }
+    public static ArrayList<Course> getAllCoursesForStudent() {
+        return getApprovedCourses();
+    }
 
+    public static ArrayList<Course> getApprovedCourses() {
+        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+        ArrayList<Course> approvedCourses = new ArrayList<>();
+        for (Course c : courses) {
+            if (c.getApprovalStatus() == Course.APPROVED) {
+                approvedCourses.add(c);
+            }
+        }
+        return approvedCourses;
+    }
     public static Course getCourseById(String courseId) {
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+        for (Course c : courses) {
+            if (c.getCourseId().equals(courseId)) {
+                return c;
+            }
+        }
+        return null;
+    }
+    public static Course getCourseByIdForStudent(String courseId) {
+        ArrayList<Course> courses = getApprovedCourses();
         for (Course c : courses) {
             if (c.getCourseId().equals(courseId)) {
                 return c;

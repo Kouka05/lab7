@@ -25,6 +25,11 @@ public class StudentService {
             System.out.println("Course not found: " + courseId);
             return false;
         }
+        if(targetCourse.getApprovalStatus()!=Course.APPROVED)
+        {
+            System.out.println("Course is not approved yet!");
+            return false;
+        }
         for (User u : users) {
             if (u instanceof Student && u.getUserId().equals(studentId)) {
                 targetStudent = (Student) u;
@@ -55,7 +60,7 @@ public class StudentService {
         }
         if (student == null) return enrolledCourses;
         for (Course c : allCourses) {
-            if (student.getEnrolledCourses().contains(c.getCourseId())) {
+            if (student.getEnrolledCourses().contains(c.getCourseId())&&c.getApprovalStatus()==Course.APPROVED) {
                 enrolledCourses.add(c);
             }
         }
