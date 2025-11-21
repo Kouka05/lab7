@@ -124,10 +124,23 @@ public class InstructorDashboardFrame extends JFrame {
         styleActionButton(deleteCourseButton);
         styleActionButton(refreshButton);
 
-        manageCourseButton.addActionListener(e -> manageSelectedCourse());
-        addLessonButton.addActionListener(e -> addLessonToCourse());
-        viewStudentsButton.addActionListener(e -> viewCourseStudents());
-        viewLessonsButton.addActionListener(e -> viewCourseLessons());
+        manageCourseButton.addActionListener(e ->
+        {
+            if(getStatus())
+                    manageSelectedCourse();
+        });
+        addLessonButton.addActionListener(e -> {
+            if(getStatus())
+            addLessonToCourse();
+        });
+        viewStudentsButton.addActionListener(e -> {
+            if(getStatus())
+            viewCourseStudents();
+        });
+        viewLessonsButton.addActionListener(e ->{
+            if(getStatus())
+                viewCourseLessons();
+        } );
         deleteCourseButton.addActionListener(e -> deleteSelectedCourse());
         refreshButton.addActionListener(e -> refreshCoursesTable());
 
@@ -283,18 +296,29 @@ public class InstructorDashboardFrame extends JFrame {
         DefaultTableModel model = (DefaultTableModel) coursesTable.getModel();
         model.setRowCount(0);
 
-        ArrayList<Course> instructorCourses = CourseService.getCourseByInstructor(currentInstructor.getUserId());
+        ArrayList<Course> instructorCourses =
+                CourseService.getCourseByInstructor(currentInstructor.getUserId());
 
         for (Course course : instructorCourses) {
+
+            String status;
+            int approval = course.getApprovalStatus();
+
+            if (approval == 1)      status = "Pending";
+            else if (approval == 2) status = "Approved";
+            else if (approval == 3) status = "Rejected";
+            else                    status = "Unknown";
+
             model.addRow(new Object[]{
                     course.getCourseId(),
                     course.getTitle(),
                     course.getStudents().size(),
                     course.getLessons().size(),
-                    "Active"
+                    status
             });
         }
     }
+
 
     private void refreshStudentsTable() {
         DefaultTableModel model = (DefaultTableModel) studentsTable.getModel();
@@ -353,6 +377,12 @@ public class InstructorDashboardFrame extends JFrame {
         if (selectedRow >= 0) {
             String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
             String courseName = (String) coursesTable.getValueAt(selectedRow, 1);
+            String status= (String) coursesTable.getValueAt(selectedRow, 4);
+            if (status.equals("Pending")) {
+                JOptionPane.showMessageDialog(this, "Course hasn't been approved yet!","warning",JOptionPane.WARNING_MESSAGE);
+            }else if (status.equals("Rejected")) {
+                JOptionPane.showMessageDialog(this,"Course Has Been Rejected By Admin!","warning",JOptionPane.WARNING_MESSAGE);
+            }
 
             String[] options = {"Edit Course", "View Lessons", "View Students", "Cancel"};
             int choice = JOptionPane.showOptionDialog(this,
@@ -734,5 +764,24 @@ public class InstructorDashboardFrame extends JFrame {
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+    }
+    private boolean getStatus(){
+        int selectedRow = coursesTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
+            String courseName = (String) coursesTable.getValueAt(selectedRow, 1);
+            String status = (String) coursesTable.getValueAt(selectedRow, 4);
+            if (status.equals("Pending")) {
+                JOptionPane.showMessageDialog(this, "Course hasn't been approved yet!", "warning", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+            if (status.equals("Rejected")) {
+                JOptionPane.showMessageDialog(this, "Course Has Been Rejected By Admin!", "warning", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+
+        }
+        return true;
     }
 }

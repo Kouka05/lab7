@@ -1,1 +1,46 @@
-[ ]
+[ {
+  "courseId" : "C1",
+  "title" : "lol",
+  "description" : "1234568",
+  "instructorId" : "I2",
+  "approvalStatus" : 3,
+  "lessons" : [ {
+    "lessonId" : "L1",
+    "title" : "12345",
+    "content" : "4846",
+    "resources" : [ "fijflejglegjeligjepgejpiogjeirgj" ],
+    "completed" : false,
+    "quiz" : {
+      "questions" : [ ],
+      "completed" : false,
+      "attemps" : 0,
+      "score" : 0.0
+    }
+  }, {
+    "lessonId" : "L2",
+    "title" : "hkrrmh;rho;r",
+    "content" : "rhlkmr;ohrkpo;4k,",
+    "resources" : [ "gormmrsohk,oh" ],
+    "completed" : false,
+    "quiz" : {
+      "questions" : [ ],
+      "completed" : false,
+      "attemps" : 0,
+      "score" : 0.0
+    }
+  }, {
+    "lessonId" : "L3",
+    "title" : "12234",
+    "content" : "hrhorkhr'hrk'h",
+    "resources" : [ "gl;rs;rtk;ow" ],
+    "completed" : false,
+    "quiz" : {
+      "questions" : [ ],
+      "completed" : false,
+      "attemps" : 0,
+      "score" : 0.0
+    }
+  } ],
+  "students" : [ ],
+  "approvalStatusString" : "Rejected"
+} ]
