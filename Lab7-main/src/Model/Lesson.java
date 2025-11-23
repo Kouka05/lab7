@@ -1,4 +1,5 @@
 package Model;
+
 import java.util.ArrayList;
 
 public class Lesson {
@@ -6,8 +7,8 @@ public class Lesson {
     private String title;
     private String content;
     private ArrayList<String> resources;
-//    private boolean completed = false;
-    private Quiz quiz ;
+    private Quiz quiz;
+
     public Lesson() {
         this.resources = new ArrayList<>();
         this.quiz = new Quiz();
@@ -18,7 +19,7 @@ public class Lesson {
         this.title = title;
         this.content = content;
         this.resources = resources != null ? resources : new ArrayList<>();
-        this.quiz=new Quiz();
+        this.quiz = new Quiz();
     }
 
     public String getLessonId() { return lessonId; }
@@ -29,14 +30,6 @@ public class Lesson {
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
-
-//    public void setCompleted(boolean completed) {
-//        this.completed = completed;
-//    }
-
-//    public boolean isCompleted() {
-//        return completed;
-//    }
 
     public Quiz getQuiz() {
         return quiz;
