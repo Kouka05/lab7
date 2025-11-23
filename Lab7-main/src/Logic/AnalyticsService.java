@@ -25,6 +25,8 @@ public class AnalyticsService {
 
         // Lesson statistics
         Map<String, Object> lessonStats = new HashMap<>();
+        Map<String, Double> lessonQuizAverages = new HashMap<>();
+        Map<String, Double> lessonCompletionRates = new HashMap<>();
 
         for (Lesson lesson : course.getLessons()) {
             Map<String, Object> lessonData = new HashMap<>();
@@ -60,12 +62,17 @@ public class AnalyticsService {
                 }
             }
 
+            double completionRate = totalStudents > 0 ? (double) completedCount / totalStudents * 100 : 0;
+            double averageQuizScore = quizAttempts > 0 ? totalQuizScore / quizAttempts : 0;
+
             lessonData.put("completedCount", completedCount);
-            lessonData.put("completionRate", totalStudents > 0 ? (double) completedCount / totalStudents * 100 : 0);
-            lessonData.put("averageQuizScore", quizAttempts > 0 ? totalQuizScore / quizAttempts : 0);
+            lessonData.put("completionRate", completionRate);
+            lessonData.put("averageQuizScore", averageQuizScore);
             lessonData.put("quizAttempts", quizAttempts);
 
             lessonStats.put(lesson.getLessonId(), lessonData);
+            lessonQuizAverages.put(lesson.getTitle(), averageQuizScore);
+            lessonCompletionRates.put(lesson.getTitle(), completionRate);
         }
 
         analytics.put("totalStudents", totalStudents);
@@ -73,6 +80,8 @@ public class AnalyticsService {
         analytics.put("completionRate", totalStudents > 0 ? (double) completedStudents / totalStudents * 100 : 0);
         analytics.put("averageCourseProgress", totalStudents > 0 ? totalCourseProgress / totalStudents : 0);
         analytics.put("lessonStats", lessonStats);
+        analytics.put("lessonQuizAverages", lessonQuizAverages);
+        analytics.put("lessonCompletionRates", lessonCompletionRates);
 
         return analytics;
     }
@@ -84,7 +93,7 @@ public class AnalyticsService {
         int totalCourses = instructorCourses.size();
         int approvedCourses = 0;
         int totalStudents = 0;
-        double totalRevenue = 0; // Placeholder for future revenue tracking
+        double totalRevenue = 0;
 
         for (Course course : instructorCourses) {
             if (course.getApprovalStatus() == Course.APPROVED) {
@@ -132,6 +141,7 @@ public class AnalyticsService {
                     }
                     studentData.put("averageQuizScore", quizCount > 0 ? totalQuizScore / quizCount : 0);
                     studentData.put("completedQuizzes", quizCount);
+                    studentData.put("completedLessons", countCompletedLessons(student, course));
 
                     performanceData.add(studentData);
                 }
@@ -139,5 +149,32 @@ public class AnalyticsService {
         }
 
         return performanceData;
+    }
+
+    private static int countCompletedLessons(Student student, Course course) {
+        int completed = 0;
+        for (Lesson lesson : course.getLessons()) {
+            LessonProgress progress = student.getLessonProgress().get(lesson.getLessonId());
+            if (progress != null && progress.isCompleted()) {
+                completed++;
+            }
+        }
+        return completed;
+    }
+
+    public static Map<String, Object> getStudentProgressOverTime(String studentId, String courseId) {
+        Map<String, Object> progressData = new HashMap<>();
+        // This would typically track progress over time
+        // For now, we'll return current progress
+        ArrayList<User> users = JSONDatabaseManager.loadUsers();
+        for (User user : users) {
+            if (user instanceof Student && user.getUserId().equals(studentId)) {
+                Student student = (Student) user;
+                Integer progress = student.getProgress().get(courseId);
+                progressData.put("currentProgress", progress != null ? progress : 0);
+                break;
+            }
+        }
+        return progressData;
     }
 }
