@@ -43,4 +43,37 @@
   } ],
   "students" : [ ],
   "approvalStatusString" : "Rejected"
+}, {
+  "courseId" : "C2",
+  "title" : "1234654",
+  "description" : "gelgmk;eme;ml;",
+  "instructorId" : "I2",
+  "approvalStatus" : 2,
+  "lessons" : [ {
+    "lessonId" : "L1",
+    "title" : "ropp'robkro",
+    "content" : "bpikpotbkoker",
+    "resources" : [ "bopetbk;tm;tbm;eto" ],
+    "completed" : true,
+    "quiz" : {
+      "questions" : [ ],
+      "completed" : false,
+      "attemps" : 0,
+      "score" : 0.0
+    }
+  }, {
+    "lessonId" : "L2",
+    "title" : "okl[oesgl[eper",
+    "content" : "g;l,r;l,r;lr,;ls,",
+    "resources" : [ "g;rm,wl,g;twltg,tw" ],
+    "completed" : true,
+    "quiz" : {
+      "questions" : [ ],
+      "completed" : false,
+      "attemps" : 0,
+      "score" : 0.0
+    }
+  } ],
+  "students" : [ "S3", "S4" ],
+  "approvalStatusString" : "Approved"
 } ]

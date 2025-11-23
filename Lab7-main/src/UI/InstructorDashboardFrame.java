@@ -377,12 +377,7 @@ public class InstructorDashboardFrame extends JFrame {
         if (selectedRow >= 0) {
             String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
             String courseName = (String) coursesTable.getValueAt(selectedRow, 1);
-            String status= (String) coursesTable.getValueAt(selectedRow, 4);
-            if (status.equals("Pending")) {
-                JOptionPane.showMessageDialog(this, "Course hasn't been approved yet!","warning",JOptionPane.WARNING_MESSAGE);
-            }else if (status.equals("Rejected")) {
-                JOptionPane.showMessageDialog(this,"Course Has Been Rejected By Admin!","warning",JOptionPane.WARNING_MESSAGE);
-            }
+
 
             String[] options = {"Edit Course", "View Lessons", "View Students", "Cancel"};
             int choice = JOptionPane.showOptionDialog(this,
@@ -771,10 +766,7 @@ public class InstructorDashboardFrame extends JFrame {
             String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
             String courseName = (String) coursesTable.getValueAt(selectedRow, 1);
             String status = (String) coursesTable.getValueAt(selectedRow, 4);
-            if (status.equals("Pending")) {
-                JOptionPane.showMessageDialog(this, "Course hasn't been approved yet!", "warning", JOptionPane.WARNING_MESSAGE);
-                return false;
-            }
+
             if (status.equals("Rejected")) {
                 JOptionPane.showMessageDialog(this, "Course Has Been Rejected By Admin!", "warning", JOptionPane.WARNING_MESSAGE);
                 return false;

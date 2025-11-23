@@ -5,10 +5,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "instructor" : false,
+  "student" : false,
   "roleString" : "Admin",
-  "admin" : true,
-  "student" : false
+  "instructor" : false,
+  "admin" : true
 }, {
   "userId" : "I2",
   "username" : "ahmed",
@@ -16,11 +16,11 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 2,
   "type" : "instructor",
-  "createdCourses" : [ "C1" ],
-  "instructor" : true,
+  "createdCourses" : [ "C1", "C2" ],
+  "student" : false,
   "roleString" : "Instructor",
-  "admin" : false,
-  "student" : false
+  "instructor" : true,
+  "admin" : false
 }, {
   "userId" : "S3",
   "username" : "a7a",
@@ -28,10 +28,27 @@
   "passwordHash" : "be8322279cd1c63813d8dd9717b92d818af9b3e807f2a73a4f3cbd329e1823ed",
   "role" : 1,
   "type" : "student",
-  "enrolledCourses" : [ ],
-  "progress" : { },
-  "instructor" : false,
+  "enrolledCourses" : [ "C2" ],
+  "progress" : {
+    "C2" : 100
+  },
+  "student" : true,
   "roleString" : "Student",
-  "admin" : false,
-  "student" : true
+  "instructor" : false,
+  "admin" : false
+}, {
+  "userId" : "S4",
+  "username" : "lol",
+  "email" : "lol@a.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 1,
+  "type" : "student",
+  "enrolledCourses" : [ "C2" ],
+  "progress" : {
+    "C2" : 0
+  },
+  "student" : true,
+  "roleString" : "Student",
+  "instructor" : false,
+  "admin" : false
 } ]

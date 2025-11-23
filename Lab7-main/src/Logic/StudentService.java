@@ -1,10 +1,8 @@
 package Logic;
 
 import Database.JSONDatabaseManager;
-import Model.Course;
-import Model.Student;
-import Model.User;
-import Model.Lesson;
+import Model.*;
+
 import java.util.ArrayList;
 
 public class StudentService {
@@ -25,8 +23,7 @@ public class StudentService {
             System.out.println("Course not found: " + courseId);
             return false;
         }
-        if(targetCourse.getApprovalStatus()!=Course.APPROVED)
-        {
+        if (targetCourse.getApprovalStatus() != Course.APPROVED) {
             System.out.println("Course is not approved yet!");
             return false;
         }
@@ -47,6 +44,7 @@ public class StudentService {
         System.out.println("Student " + studentId + " enrolled in course " + courseId);
         return true;
     }
+
     public static ArrayList<Course> getEnrolledCourses(String studentId) {
         ArrayList<Course> allCourses = JSONDatabaseManager.loadCourses();
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
@@ -60,12 +58,13 @@ public class StudentService {
         }
         if (student == null) return enrolledCourses;
         for (Course c : allCourses) {
-            if (student.getEnrolledCourses().contains(c.getCourseId())&&c.getApprovalStatus()==Course.APPROVED) {
+            if (student.getEnrolledCourses().contains(c.getCourseId()) && c.getApprovalStatus() == Course.APPROVED) {
                 enrolledCourses.add(c);
             }
         }
         return enrolledCourses;
     }
+
     public static boolean unenroll(String studentId, String courseId) {
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
@@ -73,9 +72,6 @@ public class StudentService {
         for (Course c : courses) {
             if (c.getCourseId().equals(courseId)) {
                 c.removeStudent(studentId);
-                for(Lesson l : c.getLessons()){
-                    l.setCompleted(false);
-                }
                 success = true;
                 break;
             }
@@ -84,6 +80,7 @@ public class StudentService {
             if (u instanceof Student && u.getUserId().equals(studentId)) {
                 Student student = (Student) u;
                 student.dropCourse(courseId);
+
                 success = true;
                 break;
             }
@@ -95,20 +92,26 @@ public class StudentService {
         }
         return success;
     }
-    public static boolean markLessonCompleted(String studentId, String courseId, String lessonId) {
+    public static boolean markLessonCompleted(Student student, String lessonId,String courseId) {
+
+        // Get or create the LessonProgress object for this lesson
+        LessonProgress lp = student.getLessonProgress().computeIfAbsent(lessonId, k -> new LessonProgress());
+
+        // If quiz score is NOT set → cannot mark completed
+        if (lp.getQuizScore() == null) {
+            return false;
+        }
+
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-        Student student = null;
+        Student s = null;
         for (User u : users) {
-            if (u instanceof Student && u.getUserId().equals(studentId)) {
-                student = (Student) u;
+            if (u instanceof Student && u.getUserId().equals(student.getUserId())) {
+                s = (Student) u;
                 break;
             }
         }
-        if (student == null) {
-            System.out.println("Student not found: " + studentId);
-            return false;
-        }
+
         Course course = null;
         for (Course c : courses) {
             if (c.getCourseId().equals(courseId)) {
@@ -125,27 +128,86 @@ public class StudentService {
             System.out.println("No lessons in course");
             return false;
         }
-        Lesson lessonCompleted = null;
-        for (Lesson lesson : course.getLessons()) {
-            if (lesson.getLessonId().equals(lessonId)) {
-                lessonCompleted = lesson;
-                break;
-            }
-        }
-        if (lessonCompleted == null) return false;
-        if (!lessonCompleted.isCompleted()) {
-            lessonCompleted.setCompleted(true);
-            int currentProgress = student.getProgress().getOrDefault(courseId, 0);
+
+        // Otherwise mark lesson as completed
+        lp.setCompleted(true);
+
+                    int currentProgress = student.getProgress().getOrDefault(courseId, 0);
             double progressPerLesson = 100.0 / totalLessons;
             int newProgress = Math.min(100, (int)Math.round(currentProgress + progressPerLesson));
             student.updateProgress(courseId, newProgress);
             JSONDatabaseManager.saveCourses(courses);
             JSONDatabaseManager.saveUsers(users);
-            System.out.println("Lesson " + lessonId + " marked completed for student " + studentId);
-            return true;
-        } else {
-            System.out.println("Lesson already completed");
-            return false;
-        }
+            System.out.println("Lesson " + lessonId + " marked completed for student " + s.getUserId());
+
+        return true;
+    }
+
+
+
+
+    public void setQuizScore(Student student, String lessonId, int score) {
+        student.getLessonProgress()
+                .computeIfAbsent(lessonId, k -> new LessonProgress())
+                .setQuizScore(score);
+    }
+
+    public LessonProgress getLessonProgress(Student student, String lessonId) {
+        return student.getLessonProgress().get(lessonId);
     }
 }
+
+//    public static boolean markLessonCompleted(String studentId, String courseId, String lessonId) {
+//        ArrayList<User> users = JSONDatabaseManager.loadUsers();
+//        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+//        Student student = null;
+//        for (User u : users) {
+//            if (u instanceof Student && u.getUserId().equals(studentId)) {
+//                student = (Student) u;
+//                break;
+//            }
+//        }
+//        if (student == null) {
+//            System.out.println("Student not found: " + studentId);
+//            return false;
+//        }
+//        Course course = null;
+//        for (Course c : courses) {
+//            if (c.getCourseId().equals(courseId)) {
+//                course = c;
+//                break;
+//            }
+//        }
+//        if (course == null) {
+//            System.out.println("Course not found: " + courseId);
+//            return false;
+//        }
+//        int totalLessons = course.getLessons().size();
+//        if (totalLessons == 0) {
+//            System.out.println("No lessons in course");
+//            return false;
+//        }
+//        Lesson lessonCompleted = null;
+//        for (Lesson lesson : course.getLessons()) {
+//            if (lesson.getLessonId().equals(lessonId)) {
+//                lessonCompleted = lesson;
+//                break;
+//            }
+//        }
+//        if (lessonCompleted == null) return false;
+//        if (!lessonCompleted.isCompleted()) {
+//            lessonCompleted.setCompleted(true);
+//            int currentProgress = student.getProgress().getOrDefault(courseId, 0);
+//            double progressPerLesson = 100.0 / totalLessons;
+//            int newProgress = Math.min(100, (int)Math.round(currentProgress + progressPerLesson));
+//            student.updateProgress(courseId, newProgress);
+//            JSONDatabaseManager.saveCourses(courses);
+//            JSONDatabaseManager.saveUsers(users);
+//            System.out.println("Lesson " + lessonId + " marked completed for student " + studentId);
+//            return true;
+//        } else {
+//            System.out.println("Lesson already completed");
+//            return false;
+//        }
+//    }
+//}

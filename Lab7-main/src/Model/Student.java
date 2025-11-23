@@ -6,11 +6,22 @@ import java.util.Map;
 public class Student extends User {
     private ArrayList<String> enrolledCourses;
     private Map<String, Integer> progress;
+    private Map<String, LessonProgress> lessonProgress;
+
+    public Map<String, LessonProgress> getLessonProgress() {
+        return lessonProgress;
+    }
+
+    public void setLessonProgress(Map<String, LessonProgress> lessonProgress) {
+        this.lessonProgress = lessonProgress;
+    }
 
     public Student() {
         super();
         this.enrolledCourses = new ArrayList<>();
         this.progress = new HashMap<>();
+        this.lessonProgress = new HashMap<>();
+
     }
 
     public Student(String userId, String username, String email, String passwordHash, int role) {

@@ -492,6 +492,7 @@ public class StudentDashboardFrame extends JFrame {
             return;
         }
         ArrayList<Lesson> incompleteLessons = new ArrayList<>();
+        if(currentStudent.)
         for (Lesson lesson : lessons) {
             if (!lesson.isCompleted()) {
                 incompleteLessons.add(lesson);
@@ -523,8 +524,7 @@ public class StudentDashboardFrame extends JFrame {
         }
 
         if (lessonId != null) {
-            boolean success = StudentService.markLessonCompleted(
-                    currentStudent.getUserId(), courseId, lessonId);
+            boolean success = StudentService.markLessonCompleted(currentStudent, lessonId,courseId);
 
             if (success) {
                 JOptionPane.showMessageDialog(this,
