@@ -3,18 +3,19 @@ package Model;
 import java.util.ArrayList;
 
 public class Quiz {
-private ArrayList<Question> questions;
-    private boolean completed=false;
-    private int attemps;
+    private ArrayList<Question> questions;
+    private boolean completed = false;
+    private int attempts;
     private float score;
-public Quiz(){
-    this.questions=new ArrayList<>();
-}
 
-    public Quiz(ArrayList<Question> questions, float score, int attemps, boolean completed) {
+    public Quiz() {
+        this.questions = new ArrayList<>();
+    }
+
+    public Quiz(ArrayList<Question> questions, float score, int attempts, boolean completed) {
         this.questions = questions;
         this.score = score;
-        this.attemps = attemps;
+        this.attempts = attempts;
         this.completed = completed;
     }
 
@@ -31,7 +32,7 @@ public Quiz(){
     }
 
     public int getAttemps() {
-        return attemps;
+        return attempts;
     }
 
     public void setQuestions(ArrayList<Question> questions) {
@@ -42,13 +43,14 @@ public Quiz(){
         this.completed = completed;
     }
 
-    public void setAttemps(int attemps) {
-        this.attemps = attemps;
+    public void setAttemps(int attempts) {
+        this.attempts = attempts;
     }
 
     public void setScore(float score) {
         this.score = score;
     }
+
     public void addQuestion(Question question) {
         this.questions.add(question);
     }
