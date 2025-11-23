@@ -89,21 +89,22 @@ public class QuizService {
 
         float score = 0;
         try {
-            score = (rightAnswerCount * 100) / questionNum;
+            score = (float) (rightAnswerCount * 100) / questionNum;
         } catch (ArithmeticException e) {
             System.out.println("There are no questions in the quiz");
             return false;
         }
 
-        // Update quiz attempts and score
+        // Update quiz attempts and score in the course object
         quiz.setScore(score);
         quiz.setCompleted(true);
         quiz.setAttemps(quiz.getAttemps() + 1);
 
-        // Update student's lesson progress with the quiz score
-        boolean progressUpdated = StudentService.updateLessonProgress(studentId, courseId, lessonId, (int) score);
+        // Update student's lesson progress
+        boolean progressUpdated = updateStudentLessonProgress(student, courseId, lessonId, (int) score, users);
 
         if (progressUpdated) {
+            // Save both courses (with updated quiz) and users (with updated progress)
             JSONDatabaseManager.saveCourses(courses);
             JSONDatabaseManager.saveUsers(users);
             System.out.println("Quiz submitted successfully. Score: " + score + "%");
@@ -112,6 +113,69 @@ public class QuizService {
             System.out.println("Failed to update lesson progress");
             return false;
         }
+    }
+
+    private static boolean updateStudentLessonProgress(Student student, String courseId, String lessonId, int quizScore, ArrayList<User> users) {
+        try {
+            // Get or create lesson progress
+            LessonProgress lessonProgress = student.getLessonProgress()
+                    .computeIfAbsent(lessonId, k -> new LessonProgress());
+
+            // Update the quiz score - this automatically handles completion if score >= 50
+            lessonProgress.setQuizScore(quizScore);
+
+            // Update course progress based on completed lessons
+            Course course = CourseService.getCourseById(courseId);
+            if (course != null) {
+                int totalLessons = course.getLessons().size();
+                if (totalLessons > 0) {
+                    int completedLessons = countCompletedLessons(student, course);
+                    int newProgress = (completedLessons * 100) / totalLessons;
+                    student.updateProgress(courseId, newProgress);
+                    
+                    // Check if course is completed for certificate
+                    if (newProgress == 100) {
+                        generateCertificate(student, courseId);
+                    }
+                }
+            }
+
+            System.out.println("Lesson progress updated for student " + student.getUserId() + 
+                             " - Score: " + quizScore + "%, Attempts: " + lessonProgress.getAttempts() + 
+                             ", Completed: " + lessonProgress.isCompleted());
+            return true;
+        } catch (Exception e) {
+            System.out.println("Error updating student lesson progress: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static int countCompletedLessons(Student student, Course course) {
+        int completed = 0;
+        for (Lesson lesson : course.getLessons()) {
+            LessonProgress progress = student.getLessonProgress().get(lesson.getLessonId());
+            if (progress != null && progress.isCompleted()) {
+                completed++;
+            }
+        }
+        return completed;
+    }
+
+    private static void generateCertificate(Student student, String courseId) {
+        // Check if certificate already exists
+        for (Certificate cert : student.getCertificates()) {
+            if (cert.getCourseId().equals(courseId)) {
+                return; // Certificate already exists
+            }
+        }
+
+        // Generate new certificate
+        String certificateId = "CERT_" + student.getUserId() + "_" + courseId + "_" + System.currentTimeMillis();
+        Certificate certificate = new Certificate(certificateId, student.getUserId(), courseId);
+        student.addCertificate(certificate);
+        
+        System.out.println("Certificate generated: " + certificateId + " for student " + student.getUserId());
     }
 
     public static Quiz getQuizResults(String studentId, String courseId, String lessonId) {
