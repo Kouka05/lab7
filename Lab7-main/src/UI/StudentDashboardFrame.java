@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class StudentDashboardFrame extends JFrame {
     private JTable coursesTable;
@@ -63,6 +64,10 @@ public class StudentDashboardFrame extends JFrame {
         for (User user : users) {
             if (user.getUserId().equals(currentStudent.getUserId()) && user instanceof Student) {
                 currentStudent = (Student) user;
+                // Ensure lesson progress map is initialized
+                if (currentStudent.getLessonProgress() == null) {
+                    currentStudent.setLessonProgress(new HashMap<>());
+                }
                 AuthenticationService.updateLoggedInUser(currentStudent);
                 break;
             }
@@ -426,19 +431,69 @@ public class StudentDashboardFrame extends JFrame {
 
             JDialog lessonsDialog = new JDialog(this, "Lessons for " + courseName, true);
             lessonsDialog.setLayout(new BorderLayout());
-            lessonsDialog.setSize(800, 600);
+            lessonsDialog.setSize(900, 700);
             lessonsDialog.setLocationRelativeTo(this);
 
             DefaultListModel<String> listModel = new DefaultListModel<>();
-            for (Lesson lesson : lessons) {
-                // Check if lesson is completed
+            for (int i = 0; i < lessons.size(); i++) {
+                Lesson lesson = lessons.get(i);
                 LessonProgress progress = currentStudent.getLessonProgress().get(lesson.getLessonId());
-                String status = (progress != null && progress.isCompleted()) ? " ✓" : "";
-                listModel.addElement(lesson.getTitle() + status);
+
+                String status = "";
+                if (progress != null) {
+                    if (progress.isCompleted()) {
+                        status = " ✓ (Score: " + progress.getQuizScore() + "%, Attempts: " + progress.getAttempts() + ")";
+                    } else if (progress.getQuizScore() != null) {
+                        status = " ✗ (Score: " + progress.getQuizScore() + "%, Attempts: " + progress.getAttempts() + ")";
+                    }
+                }
+
+                // Check if lesson is accessible
+                boolean accessible = StudentService.isLessonAccessible(currentStudent, courseId, lesson.getLessonId());
+                String accessibleIcon = accessible ? "" : " 🔒";
+
+                listModel.addElement((i + 1) + ". " + lesson.getTitle() + status + accessibleIcon);
             }
 
             JList<String> lessonsList = new JList<>(listModel);
             lessonsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+            // Custom cell renderer to show locked lessons as disabled
+            lessonsList.setCellRenderer(new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (index >= 0 && index < lessons.size()) {
+                        Lesson lesson = lessons.get(index);
+                        boolean accessible = StudentService.isLessonAccessible(currentStudent, courseId, lesson.getLessonId());
+
+                        if (!accessible && index > 0) {
+                            c.setEnabled(false);
+                            c.setBackground(Color.LIGHT_GRAY);
+                            setForeground(Color.DARK_GRAY);
+                        } else {
+                            c.setEnabled(true);
+                            if (isSelected) {
+                                c.setBackground(new Color(0, 102, 204));
+                                setForeground(Color.WHITE);
+                            } else {
+                                c.setBackground(Color.WHITE);
+                                setForeground(Color.BLACK);
+                            }
+                        }
+
+                        // Show completed lessons with green text
+                        LessonProgress progress = currentStudent.getLessonProgress().get(lesson.getLessonId());
+                        if (progress != null && progress.isCompleted()) {
+                            setForeground(new Color(0, 128, 0)); // Green for completed
+                        } else if (progress != null && progress.getQuizScore() != null) {
+                            setForeground(new Color(255, 140, 0)); // Orange for attempted but not passed
+                        }
+                    }
+                    return c;
+                }
+            });
+
             JScrollPane listScroll = new JScrollPane(lessonsList);
 
             JPanel contentPanel = new JPanel(new BorderLayout());
@@ -473,6 +528,26 @@ public class StudentDashboardFrame extends JFrame {
                     int index = lessonsList.getSelectedIndex();
                     if (index >= 0) {
                         Lesson selectedLesson = lessons.get(index);
+
+                        // Check if lesson is accessible
+                        boolean accessible = StudentService.isLessonAccessible(currentStudent, courseId, selectedLesson.getLessonId());
+                        if (!accessible && index > 0) {
+                            JOptionPane.showMessageDialog(lessonsDialog,
+                                    "You must complete the previous lesson and pass its quiz first!\n" +
+                                            "Please complete Lesson " + index + " with a score of 50% or higher to unlock this lesson.",
+                                    "Lesson Locked", JOptionPane.WARNING_MESSAGE);
+
+                            // Clear content for locked lessons
+                            contentArea.setText("This lesson is locked. Complete the previous lesson to unlock.");
+                            resourcesArea.setText("");
+                            quizPanel.removeAll();
+                            quizPanel.add(new JLabel("Lesson locked. Complete previous lesson first."));
+                            quizPanel.revalidate();
+                            quizPanel.repaint();
+                            return;
+                        }
+
+                        // Load lesson content for accessible lessons
                         contentArea.setText(selectedLesson.getContent());
 
                         StringBuilder resourcesText = new StringBuilder();
@@ -487,43 +562,94 @@ public class StudentDashboardFrame extends JFrame {
                         // Update quiz panel
                         quizPanel.removeAll();
                         Quiz lessonQuiz = selectedLesson.getQuiz();
+                        LessonProgress progress = currentStudent.getLessonProgress().get(selectedLesson.getLessonId());
+
                         if (lessonQuiz != null && !lessonQuiz.getQuestions().isEmpty()) {
                             // Check if already completed
-                            LessonProgress progress = currentStudent.getLessonProgress().get(selectedLesson.getLessonId());
                             if (progress != null && progress.isCompleted()) {
-                                JLabel completedLabel = new JLabel("Quiz already completed. Score: " + progress.getQuizScore() + "%");
-                                quizPanel.add(completedLabel);
-                            } else {
-                                ArrayList<JComboBox<String>> answerBoxes = new ArrayList<>();
-                                int qNum = 1;
-                                for (Question q : lessonQuiz.getQuestions()) {
-                                    JLabel qLabel = new JLabel(qNum + ". " + q.getQuestion());
-                                    quizPanel.add(qLabel);
-                                    JComboBox<String> comboBox = new JComboBox<>(q.getOption().toArray(new String[0]));
-                                    quizPanel.add(comboBox);
-                                    answerBoxes.add(comboBox);
-                                    qNum++;
-                                }
+                                JPanel completedPanel = new JPanel(new BorderLayout());
+                                JLabel completedLabel = new JLabel(
+                                        "<html><b>Quiz Completed!</b><br>" +
+                                                "Score: " + progress.getQuizScore() + "%<br>" +
+                                                "Attempts: " + progress.getAttempts() + "<br>" +
+                                                "Status: PASSED ✓</html>"
+                                );
+                                completedLabel.setForeground(new Color(0, 128, 0));
+                                completedPanel.add(completedLabel, BorderLayout.CENTER);
 
-                                JButton submitQuizButton = new JButton("Submit Quiz");
-                                submitQuizButton.addActionListener(ev -> {
-                                    ArrayList<Integer> answers = new ArrayList<>();
-                                    for (JComboBox<String> cb : answerBoxes) {
-                                        answers.add(cb.getSelectedIndex());
-                                    }
-                                    boolean success = QuizService.submitQuiz(currentStudent.getUserId(), courseId, selectedLesson.getLessonId(), answers);
-                                    if (success) {
-                                        JOptionPane.showMessageDialog(lessonsDialog, "Quiz submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                                        lessonsDialog.dispose();
-                                        viewCourseLessons(); // Refresh
-                                    } else {
-                                        JOptionPane.showMessageDialog(lessonsDialog, "Failed to submit quiz.", "Error", JOptionPane.ERROR_MESSAGE);
-                                    }
+                                JButton retakeButton = new JButton("Retake Quiz");
+                                retakeButton.addActionListener(ev -> {
+                                    showQuizForLesson(lessonQuiz, courseId, selectedLesson, lessonsDialog, true);
                                 });
-                                quizPanel.add(submitQuizButton);
+                                completedPanel.add(retakeButton, BorderLayout.SOUTH);
+
+                                quizPanel.add(completedPanel);
+                            }
+                            // Check if attempted but not passed
+                            else if (progress != null && progress.getQuizScore() != null) {
+                                JPanel attemptedPanel = new JPanel(new BorderLayout());
+                                JLabel attemptedLabel = new JLabel(
+                                        "<html><b>Quiz Attempted</b><br>" +
+                                                "Score: " + progress.getQuizScore() + "%<br>" +
+                                                "Attempts: " + progress.getAttempts() + "<br>" +
+                                                "Status: Need 50% to pass - Please retry</html>"
+                                );
+                                attemptedLabel.setForeground(new Color(255, 140, 0));
+                                attemptedPanel.add(attemptedLabel, BorderLayout.CENTER);
+
+                                JButton retakeButton = new JButton("Retake Quiz");
+                                retakeButton.addActionListener(ev -> {
+                                    showQuizForLesson(lessonQuiz, courseId, selectedLesson, lessonsDialog, false);
+                                });
+                                attemptedPanel.add(retakeButton, BorderLayout.SOUTH);
+
+                                quizPanel.add(attemptedPanel);
+                            }
+                            // Not attempted yet
+                            else {
+                                JPanel newQuizPanel = new JPanel(new BorderLayout());
+                                JLabel newQuizLabel = new JLabel("This lesson has a quiz. Click below to start.");
+                                newQuizPanel.add(newQuizLabel, BorderLayout.NORTH);
+
+                                JButton startQuizButton = new JButton("Start Quiz");
+                                startQuizButton.addActionListener(ev -> {
+                                    showQuizForLesson(lessonQuiz, courseId, selectedLesson, lessonsDialog, false);
+                                });
+                                newQuizPanel.add(startQuizButton, BorderLayout.CENTER);
+
+                                quizPanel.add(newQuizPanel);
                             }
                         } else {
-                            quizPanel.add(new JLabel("No quiz available for this lesson."));
+                            // No quiz available
+                            if (progress != null && progress.isCompleted()) {
+                                JLabel completedLabel = new JLabel("Lesson completed ✓");
+                                completedLabel.setForeground(new Color(0, 128, 0));
+                                quizPanel.add(completedLabel);
+                            } else {
+                                quizPanel.add(new JLabel("No quiz available for this lesson."));
+
+                                // Add manual completion button for lessons without quizzes
+                                JButton completeButton = new JButton("Mark as Completed");
+                                completeButton.addActionListener(ev -> {
+                                    int confirm = JOptionPane.showConfirmDialog(lessonsDialog,
+                                            "Mark this lesson as completed?",
+                                            "Confirm Completion", JOptionPane.YES_NO_OPTION);
+
+                                    if (confirm == JOptionPane.YES_OPTION) {
+                                        boolean success = StudentService.updateLessonProgress(
+                                                currentStudent.getUserId(), courseId, selectedLesson.getLessonId(), 100);
+
+                                        if (success) {
+                                            JOptionPane.showMessageDialog(lessonsDialog,
+                                                    "Lesson marked as completed!", "Success",
+                                                    JOptionPane.INFORMATION_MESSAGE);
+                                            lessonsDialog.dispose();
+                                            viewCourseLessons(); // Refresh
+                                        }
+                                    }
+                                });
+                                quizPanel.add(completeButton);
+                            }
                         }
 
                         quizPanel.revalidate();
@@ -537,13 +663,137 @@ public class StudentDashboardFrame extends JFrame {
             }
 
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, contentPanel);
-            splitPane.setDividerLocation(200);
+            splitPane.setDividerLocation(300);
 
             lessonsDialog.add(splitPane, BorderLayout.CENTER);
             lessonsDialog.setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, "Please select a course first", "No Selection", JOptionPane.WARNING_MESSAGE);
         }
+    }
+
+    private void showQuizForLesson(Quiz quiz, String courseId, Lesson lesson, JDialog parentDialog, boolean isRetake) {
+        JDialog quizDialog = new JDialog(parentDialog, "Quiz - " + lesson.getTitle(), true);
+        quizDialog.setSize(600, 500);
+        quizDialog.setLocationRelativeTo(parentDialog);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel titleLabel = new JLabel("Quiz: " + lesson.getTitle());
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        mainPanel.add(titleLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        if (isRetake) {
+            JLabel retakeLabel = new JLabel("This is a retake. Your previous attempts will be saved.");
+            retakeLabel.setForeground(Color.BLUE);
+            mainPanel.add(retakeLabel);
+            mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        }
+
+        ArrayList<JComboBox<String>> answerBoxes = new ArrayList<>();
+        int questionNumber = 1;
+
+        for (Question question : quiz.getQuestions()) {
+            JPanel questionPanel = new JPanel();
+            questionPanel.setLayout(new BoxLayout(questionPanel, BoxLayout.Y_AXIS));
+            questionPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            questionPanel.setBackground(Color.WHITE);
+
+            JLabel questionLabel = new JLabel("<html><b>" + questionNumber + ". " + question.getQuestion() + "</b></html>");
+            questionPanel.add(questionLabel);
+            questionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+
+            JComboBox<String> answerCombo = new JComboBox<>();
+            answerCombo.addItem("-- Select Answer --");
+            for (String option : question.getOption()) {
+                answerCombo.addItem(option);
+            }
+            questionPanel.add(answerCombo);
+            answerBoxes.add(answerCombo);
+
+            mainPanel.add(questionPanel);
+            mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+            questionNumber++;
+        }
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit Quiz");
+        JButton cancelButton = new JButton("Cancel");
+
+        submitButton.addActionListener(e -> {
+            // Validate that all questions are answered
+            for (int i = 0; i < answerBoxes.size(); i++) {
+                if (answerBoxes.get(i).getSelectedIndex() == 0) {
+                    JOptionPane.showMessageDialog(quizDialog,
+                            "Please answer question " + (i + 1), "Incomplete Quiz",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+
+            // Collect answers
+            ArrayList<Integer> answers = new ArrayList<>();
+            for (JComboBox<String> comboBox : answerBoxes) {
+                answers.add(comboBox.getSelectedIndex() - 1); // Subtract 1 because of the "Select Answer" option
+            }
+
+            // Show loading message
+            JOptionPane.showMessageDialog(quizDialog, "Submitting quiz...", "Please Wait", JOptionPane.INFORMATION_MESSAGE);
+
+            // Submit quiz
+            boolean success = QuizService.submitQuiz(currentStudent.getUserId(), courseId, lesson.getLessonId(), answers);
+
+            if (success) {
+                // Refresh the current student data from the database
+                refreshCurrentStudent();
+
+                // Get the updated progress to show score
+                LessonProgress updatedProgress = StudentService.getLessonProgress(currentStudent, lesson.getLessonId());
+
+                String message;
+                if (updatedProgress != null && updatedProgress.isCompleted()) {
+                    message = "Congratulations! You passed the quiz!\n" +
+                            "Score: " + updatedProgress.getQuizScore() + "%\n" +
+                            "Attempts: " + updatedProgress.getAttempts() + "\n\n" +
+                            "You can now proceed to the next lesson.";
+                } else if (updatedProgress != null) {
+                    message = "Quiz submitted!\n" +
+                            "Score: " + updatedProgress.getQuizScore() + "%\n" +
+                            "Attempts: " + updatedProgress.getAttempts() + "\n\n" +
+                            "You need 50% to pass. Please retry to unlock the next lesson.";
+                } else {
+                    message = "Quiz submitted but progress data is not available.\n" +
+                            "Please check your progress in the lessons list.";
+                }
+
+                JOptionPane.showMessageDialog(quizDialog, message, "Quiz Submitted",
+                        updatedProgress != null && updatedProgress.isCompleted() ?
+                                JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
+
+                quizDialog.dispose();
+                parentDialog.dispose();
+                viewCourseLessons(); // Refresh the lessons view
+            } else {
+                JOptionPane.showMessageDialog(quizDialog,
+                        "Failed to submit quiz. Please try again.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> quizDialog.dispose());
+
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+
+        mainPanel.add(buttonPanel);
+
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        quizDialog.add(scrollPane);
+        quizDialog.setVisible(true);
     }
 
     private void viewCertificate() {
@@ -604,4 +854,6 @@ public class StudentDashboardFrame extends JFrame {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
     }
+
+
 }

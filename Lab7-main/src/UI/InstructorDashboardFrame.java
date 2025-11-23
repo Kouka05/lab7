@@ -1,9 +1,6 @@
 package UI;
 
-import Logic.AuthenticationService;
-import Logic.CourseService;
-import Logic.LessonService;
-import Logic.QuizService;
+import Logic.*;
 import Model.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,6 +8,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Map;
+
 import Database.JSONDatabaseManager;
 
 public class InstructorDashboardFrame extends JFrame {
@@ -55,6 +54,7 @@ public class InstructorDashboardFrame extends JFrame {
         tabbedPane.addTab("My Courses", createCoursesPanel());
         tabbedPane.addTab("Students", createStudentsPanel());
         tabbedPane.addTab("Create Course", createCreateCoursePanel());
+        tabbedPane.addTab("Insights", createInsightsPanel());
 
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
 
@@ -770,20 +770,20 @@ public class InstructorDashboardFrame extends JFrame {
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton refreshButton = new JButton("Refresh Quiz View");
+//        JButton refreshButton = new JButton("Refresh Quiz View");
 
-        styleActionButton(refreshButton);
+//        styleActionButton(refreshButton);
 
-        refreshButton.addActionListener(e -> {
-            int index = ((JList<String>) SwingUtilities.getAncestorOfClass(JList.class, quizTable)).getSelectedIndex();
-            if (index >= 0) {
-                // This would need access to the lessons list, which we don't have here
-                // For now, just show a message
-                JOptionPane.showMessageDialog(this, "Please use the 'Manage Quiz' button to modify quizzes", "Info", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
+//        refreshButton.addActionListener(e -> {
+//            int index = ((JList<String>) SwingUtilities.getAncestorOfClass(JList.class, quizTable)).getSelectedIndex();
+//            if (index >= 0) {
+//                 This would need access to the lessons list, which we don't have here
+//                 For now, just show a message
+//                JOptionPane.showMessageDialog(this, "Please use the 'Manage Quiz' button to modify quizzes", "Info", JOptionPane.INFORMATION_MESSAGE);
+//            }
+//        });
 
-        buttonPanel.add(refreshButton);
+//        buttonPanel.add(refreshButton);
 
         panel.add(tableScroll, BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
@@ -1129,5 +1129,108 @@ public class InstructorDashboardFrame extends JFrame {
             }
         }
         return true;
+    }
+    private JPanel createInsightsPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titleLabel = new JLabel("Course Analytics & Insights");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        panel.add(titleLabel, BorderLayout.NORTH);
+
+        // Course selector
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        controlPanel.setBackground(Color.WHITE);
+
+        JLabel courseLabel = new JLabel("Select Course:");
+        JComboBox<String> courseCombo = new JComboBox<>();
+
+        // Load instructor's courses
+        ArrayList<Course> instructorCourses = CourseService.getCourseByInstructor(currentInstructor.getUserId());
+        for (Course course : instructorCourses) {
+            courseCombo.addItem(course.getTitle() + " (" + course.getCourseId() + ")");
+        }
+
+        JButton loadAnalyticsBtn = new JButton("Load Analytics");
+        JButton quizChartBtn = new JButton("Quiz Averages Chart");
+        JButton completionChartBtn = new JButton("Completion Rates Chart");
+
+        controlPanel.add(courseLabel);
+        controlPanel.add(courseCombo);
+        controlPanel.add(loadAnalyticsBtn);
+        controlPanel.add(quizChartBtn);
+        controlPanel.add(completionChartBtn);
+
+        panel.add(controlPanel, BorderLayout.NORTH);
+
+        // Analytics display area
+        JTextArea analyticsArea = new JTextArea();
+        analyticsArea.setEditable(false);
+        analyticsArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JScrollPane scrollPane = new JScrollPane(analyticsArea);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        // Button actions
+        loadAnalyticsBtn.addActionListener(e -> {
+            if (courseCombo.getSelectedIndex() >= 0) {
+                String selected = (String) courseCombo.getSelectedItem();
+                String courseId = selected.substring(selected.lastIndexOf("(") + 1, selected.lastIndexOf(")"));
+
+                Map<String, Object> analytics = AnalyticsService.getCourseAnalytics(courseId);
+                displayAnalytics(analyticsArea, analytics);
+            }
+        });
+
+        quizChartBtn.addActionListener(e -> {
+            if (courseCombo.getSelectedIndex() >= 0) {
+                String selected = (String) courseCombo.getSelectedItem();
+                String courseId = selected.substring(selected.lastIndexOf("(") + 1, selected.lastIndexOf(")"));
+
+                Map<String, Object> analytics = AnalyticsService.getCourseAnalytics(courseId);
+                Map<String, Double> quizAverages = (Map<String, Double>) analytics.get("lessonQuizAverages");
+
+                new ChartFrame("Quiz Averages - " + selected, quizAverages, "bar").setVisible(true);
+            }
+        });
+
+        completionChartBtn.addActionListener(e -> {
+            if (courseCombo.getSelectedIndex() >= 0) {
+                String selected = (String) courseCombo.getSelectedItem();
+                String courseId = selected.substring(selected.lastIndexOf("(") + 1, selected.lastIndexOf(")"));
+
+                Map<String, Object> analytics = AnalyticsService.getCourseAnalytics(courseId);
+                Map<String, Double> completionRates = (Map<String, Double>) analytics.get("lessonCompletionRates");
+
+                new ChartFrame("Completion Rates - " + selected, completionRates, "bar").setVisible(true);
+            }
+        });
+
+        return panel;
+    }
+
+    private void displayAnalytics(JTextArea analyticsArea, Map<String, Object> analytics) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("=== COURSE ANALYTICS ===\n\n");
+        sb.append("Total Students: ").append(analytics.get("totalStudents")).append("\n");
+        sb.append("Completed Students: ").append(analytics.get("completedStudents")).append("\n");
+        sb.append("Overall Completion Rate: ").append(String.format("%.1f", analytics.get("completionRate"))).append("%\n");
+        sb.append("Average Course Progress: ").append(String.format("%.1f", analytics.get("averageCourseProgress"))).append("%\n\n");
+
+        sb.append("=== LESSON STATISTICS ===\n\n");
+
+        Map<String, Object> lessonStats = (Map<String, Object>) analytics.get("lessonStats");
+        for (Map.Entry<String, Object> entry : lessonStats.entrySet()) {
+            Map<String, Object> lessonData = (Map<String, Object>) entry.getValue();
+            sb.append("Lesson: ").append(entry.getKey()).append("\n");
+            sb.append("  Completed by: ").append(lessonData.get("completedCount")).append(" students\n");
+            sb.append("  Completion Rate: ").append(String.format("%.1f", lessonData.get("completionRate"))).append("%\n");
+            sb.append("  Average Quiz Score: ").append(String.format("%.1f", lessonData.get("averageQuizScore"))).append("%\n");
+            sb.append("  Quiz Attempts: ").append(lessonData.get("quizAttempts")).append("\n\n");
+        }
+
+        analyticsArea.setText(sb.toString());
     }
 }

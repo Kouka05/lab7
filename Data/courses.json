@@ -1,79 +1,40 @@
 [ {
   "courseId" : "C1",
-  "title" : "lol",
-  "description" : "1234568",
-  "instructorId" : "I2",
-  "approvalStatus" : 3,
-  "lessons" : [ {
-    "lessonId" : "L1",
-    "title" : "12345",
-    "content" : "4846",
-    "resources" : [ "fijflejglegjeligjepgejpiogjeirgj" ],
-    "completed" : false,
-    "quiz" : {
-      "questions" : [ ],
-      "completed" : false,
-      "attemps" : 0,
-      "score" : 0.0
-    }
-  }, {
-    "lessonId" : "L2",
-    "title" : "hkrrmh;rho;r",
-    "content" : "rhlkmr;ohrkpo;4k,",
-    "resources" : [ "gormmrsohk,oh" ],
-    "completed" : false,
-    "quiz" : {
-      "questions" : [ ],
-      "completed" : false,
-      "attemps" : 0,
-      "score" : 0.0
-    }
-  }, {
-    "lessonId" : "L3",
-    "title" : "12234",
-    "content" : "hrhorkhr'hrk'h",
-    "resources" : [ "gl;rs;rtk;ow" ],
-    "completed" : false,
-    "quiz" : {
-      "questions" : [ ],
-      "completed" : false,
-      "attemps" : 0,
-      "score" : 0.0
-    }
-  } ],
-  "students" : [ ],
-  "approvalStatusString" : "Rejected"
-}, {
-  "courseId" : "C2",
-  "title" : "1234654",
-  "description" : "gelgmk;eme;ml;",
-  "instructorId" : "I2",
+  "title" : "egljknrslinmjeg",
+  "description" : "gklmslrwigm",
+  "instructorId" : "I1",
   "approvalStatus" : 2,
   "lessons" : [ {
     "lessonId" : "L1",
-    "title" : "ropp'robkro",
-    "content" : "bpikpotbkoker",
-    "resources" : [ "bopetbk;tm;tbm;eto" ],
-    "completed" : true,
+    "title" : "lol",
+    "content" : "lnkhohb",
+    "resources" : [ "gijpegko" ],
     "quiz" : {
-      "questions" : [ ],
-      "completed" : false,
-      "attemps" : 0,
-      "score" : 0.0
+      "questions" : [ {
+        "question" : "glkglke",
+        "correctIndex" : 1,
+        "option" : [ "gelkmgml", "egk;l", "gegk;lmrg", "ker" ]
+      }, {
+        "question" : "eg;kgegje",
+        "correctIndex" : 0,
+        "option" : [ "glkemg", "gg", "gg", "gg" ]
+      } ],
+      "completed" : true,
+      "score" : 50.0,
+      "attemps" : 3
     }
   }, {
     "lessonId" : "L2",
-    "title" : "okl[oesgl[eper",
-    "content" : "g;l,r;l,r;lr,;ls,",
-    "resources" : [ "g;rm,wl,g;twltg,tw" ],
-    "completed" : true,
+    "title" : "gjjoirjglgjmoiegmjoi",
+    "content" : "oprjlibmjifjrihl",
+    "resources" : [ "gklrgmlrkms" ],
     "quiz" : {
       "questions" : [ ],
       "completed" : false,
-      "attemps" : 0,
-      "score" : 0.0
+      "score" : 0.0,
+      "attemps" : 0
     }
   } ],
-  "students" : [ "S3", "S4" ],
+  "students" : [ "S9" ],
   "approvalStatusString" : "Approved"
 } ]
