@@ -4,12 +4,17 @@ import java.util.ArrayList;
 
 public class Question {
     private String question;
-    private ArrayList<String> option;
+    private ArrayList<String> options;
     private int correctIndex;
 
-    public Question(String question, ArrayList<String> option, int correctIndex) {
+    // Default constructor for JSON serialization
+    public Question() {
+        this.options = new ArrayList<>();
+    }
+
+    public Question(String question, ArrayList<String> options, int correctIndex) {
         this.question = question;
-        this.option = option;
+        this.options = options != null ? options : new ArrayList<>();
         this.correctIndex = correctIndex;
     }
 
@@ -18,7 +23,7 @@ public class Question {
     }
 
     public ArrayList<String> getOption() {
-        return option;
+        return options;
     }
 
     public int getCorrectIndex() {
@@ -29,12 +34,11 @@ public class Question {
         this.question = question;
     }
 
-    public void setOption(ArrayList<String> option) {
-        this.option = option;
+    public void setOption(ArrayList<String> options) {
+        this.options = options != null ? options : new ArrayList<>();
     }
 
     public void setCorrectIndex(int correctIndex) {
         this.correctIndex = correctIndex;
     }
 }
-
