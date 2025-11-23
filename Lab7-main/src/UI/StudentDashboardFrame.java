@@ -5,6 +5,7 @@ import Logic.AuthenticationService;
 import Logic.CourseService;
 import Logic.LessonService;
 import Logic.StudentService;
+import Logic.QuizService;
 import Model.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,10 +13,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import Logic.*;
+
 public class StudentDashboardFrame extends JFrame {
     private JTable coursesTable;
     private JTable availableCoursesTable;
+    private JTable certificatesTable;
     private JProgressBar overallProgressBar;
     private JLabel welcomeLabel;
     private Student currentStudent;
@@ -48,12 +50,14 @@ public class StudentDashboardFrame extends JFrame {
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("My Courses", createCoursesPanel());
         tabbedPane.addTab("Available Courses", createAvailableCoursesPanel());
+        tabbedPane.addTab("Certificates", createCertificatesPanel());
         tabbedPane.addTab("Progress", createProgressPanel());
 
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
 
         add(mainPanel);
     }
+
     private void refreshCurrentStudent() {
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
         for (User user : users) {
@@ -64,16 +68,15 @@ public class StudentDashboardFrame extends JFrame {
             }
         }
     }
+
     private void loadStudentData() {
         refreshCurrentStudent();
-
         welcomeLabel.setText("Welcome, " + currentStudent.getUsername() + "!");
-
         refreshEnrolledCoursesTable();
         refreshAvailableCoursesTable();
+        refreshCertificatesTable();
         refreshProgress();
     }
-
 
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
@@ -127,22 +130,18 @@ public class StudentDashboardFrame extends JFrame {
         buttonPanel.setBackground(Color.WHITE);
 
         JButton viewLessonsButton = new JButton("View Lessons");
-        JButton markCompleteButton = new JButton("Mark Lesson Complete");
         JButton unenrollButton = new JButton("Unenroll");
         JButton refreshButton = new JButton("Refresh");
 
         styleActionButton(viewLessonsButton);
-        styleActionButton(markCompleteButton);
         styleActionButton(unenrollButton);
         styleActionButton(refreshButton);
 
         viewLessonsButton.addActionListener(e -> viewCourseLessons());
-        markCompleteButton.addActionListener(e -> markLessonComplete());
         unenrollButton.addActionListener(e -> unenrollFromCourse());
         refreshButton.addActionListener(e -> refreshEnrolledCoursesTable());
 
         buttonPanel.add(viewLessonsButton);
-        buttonPanel.add(markCompleteButton);
         buttonPanel.add(unenrollButton);
         buttonPanel.add(refreshButton);
 
@@ -187,6 +186,49 @@ public class StudentDashboardFrame extends JFrame {
         refreshButton.addActionListener(e -> refreshAvailableCoursesTable());
 
         buttonPanel.add(enrollButton);
+        buttonPanel.add(refreshButton);
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createCertificatesPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titleLabel = new JLabel("My Certificates");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        panel.add(titleLabel, BorderLayout.NORTH);
+
+        String[] columns = {"Certificate ID", "Course", "Issue Date", "Actions"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        certificatesTable = new JTable(model);
+        certificatesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JScrollPane scrollPane = new JScrollPane(certificatesTable);
+        panel.add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setBackground(Color.WHITE);
+
+        JButton viewCertificateButton = new JButton("View Certificate");
+        JButton refreshButton = new JButton("Refresh");
+
+        styleActionButton(viewCertificateButton);
+        styleActionButton(refreshButton);
+
+        viewCertificateButton.addActionListener(e -> viewCertificate());
+        refreshButton.addActionListener(e -> refreshCertificatesTable());
+
+        buttonPanel.add(viewCertificateButton);
         buttonPanel.add(refreshButton);
 
         panel.add(buttonPanel, BorderLayout.SOUTH);
@@ -243,7 +285,7 @@ public class StudentDashboardFrame extends JFrame {
                     course.getTitle(),
                     instructorName,
                     progress + "%",
-                    "View"
+                    "View Lessons"
             });
         }
     }
@@ -274,6 +316,25 @@ public class StudentDashboardFrame extends JFrame {
                         "Enroll"
                 });
             }
+        }
+    }
+
+    private void refreshCertificatesTable() {
+        DefaultTableModel model = (DefaultTableModel) certificatesTable.getModel();
+        model.setRowCount(0);
+
+        ArrayList<Certificate> certificates = StudentService.getStudentCertificates(currentStudent.getUserId());
+
+        for (Certificate certificate : certificates) {
+            Course course = CourseService.getCourseById(certificate.getCourseId());
+            String courseName = (course != null) ? course.getTitle() : "Unknown Course";
+
+            model.addRow(new Object[]{
+                    certificate.getCertificateId(),
+                    courseName,
+                    certificate.getIssueDate(),
+                    "View"
+            });
         }
     }
 
@@ -370,7 +431,10 @@ public class StudentDashboardFrame extends JFrame {
 
             DefaultListModel<String> listModel = new DefaultListModel<>();
             for (Lesson lesson : lessons) {
-                listModel.addElement(lesson.getTitle());
+                // Check if lesson is completed
+                LessonProgress progress = currentStudent.getLessonProgress().get(lesson.getLessonId());
+                String status = (progress != null && progress.isCompleted()) ? " ✓" : "";
+                listModel.addElement(lesson.getTitle() + status);
             }
 
             JList<String> lessonsList = new JList<>(listModel);
@@ -399,7 +463,6 @@ public class StudentDashboardFrame extends JFrame {
             JPanel quizPanel = new JPanel();
             quizPanel.setLayout(new BoxLayout(quizPanel, BoxLayout.Y_AXIS));
             quizPanel.setBorder(BorderFactory.createTitledBorder("Quiz"));
-            JButton submitQuizButton = new JButton("Submit Quiz");
 
             contentPanel.add(contentAreaPanel, BorderLayout.NORTH);
             contentPanel.add(resourcesPanel, BorderLayout.CENTER);
@@ -421,34 +484,44 @@ public class StudentDashboardFrame extends JFrame {
                         }
                         resourcesArea.setText(resourcesText.toString());
 
+                        // Update quiz panel
                         quizPanel.removeAll();
                         Quiz lessonQuiz = selectedLesson.getQuiz();
                         if (lessonQuiz != null && !lessonQuiz.getQuestions().isEmpty()) {
-                            ArrayList<JComboBox<String>> answerBoxes = new ArrayList<>();
-                            int qNum = 1;
-                            for (Question q : lessonQuiz.getQuestions()) {
-                                JLabel qLabel = new JLabel(qNum + ". " + q.getQuestion());
-                                quizPanel.add(qLabel);
-                                JComboBox<String> comboBox = new JComboBox<>(q.getOption().toArray(new String[0]));
-                                quizPanel.add(comboBox);
-                                answerBoxes.add(comboBox);
-                                qNum++;
+                            // Check if already completed
+                            LessonProgress progress = currentStudent.getLessonProgress().get(selectedLesson.getLessonId());
+                            if (progress != null && progress.isCompleted()) {
+                                JLabel completedLabel = new JLabel("Quiz already completed. Score: " + progress.getQuizScore() + "%");
+                                quizPanel.add(completedLabel);
+                            } else {
+                                ArrayList<JComboBox<String>> answerBoxes = new ArrayList<>();
+                                int qNum = 1;
+                                for (Question q : lessonQuiz.getQuestions()) {
+                                    JLabel qLabel = new JLabel(qNum + ". " + q.getQuestion());
+                                    quizPanel.add(qLabel);
+                                    JComboBox<String> comboBox = new JComboBox<>(q.getOption().toArray(new String[0]));
+                                    quizPanel.add(comboBox);
+                                    answerBoxes.add(comboBox);
+                                    qNum++;
+                                }
+
+                                JButton submitQuizButton = new JButton("Submit Quiz");
+                                submitQuizButton.addActionListener(ev -> {
+                                    ArrayList<Integer> answers = new ArrayList<>();
+                                    for (JComboBox<String> cb : answerBoxes) {
+                                        answers.add(cb.getSelectedIndex());
+                                    }
+                                    boolean success = QuizService.submitQuiz(currentStudent.getUserId(), courseId, selectedLesson.getLessonId(), answers);
+                                    if (success) {
+                                        JOptionPane.showMessageDialog(lessonsDialog, "Quiz submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                                        lessonsDialog.dispose();
+                                        viewCourseLessons(); // Refresh
+                                    } else {
+                                        JOptionPane.showMessageDialog(lessonsDialog, "Failed to submit quiz.", "Error", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                });
+                                quizPanel.add(submitQuizButton);
                             }
-
-                            submitQuizButton.addActionListener(ev -> {
-                                ArrayList<Integer> answers = new ArrayList<>();
-                                for (JComboBox<String> cb : answerBoxes) {
-                                    answers.add(cb.getSelectedIndex());
-                                }
-                                boolean success = QuizService.submitQuiz(currentStudent.getUserId(), courseId, selectedLesson.getLessonId(), answers);
-                                if (success) {
-                                    JOptionPane.showMessageDialog(lessonsDialog, "Quiz submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                                } else {
-                                    JOptionPane.showMessageDialog(lessonsDialog, "Failed to submit quiz.", "Error", JOptionPane.ERROR_MESSAGE);
-                                }
-                            });
-
-                            quizPanel.add(submitQuizButton);
                         } else {
                             quizPanel.add(new JLabel("No quiz available for this lesson."));
                         }
@@ -473,71 +546,46 @@ public class StudentDashboardFrame extends JFrame {
         }
     }
 
-
-    private void markLessonComplete() {
-        int selectedRow = coursesTable.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Please select a course first", "No Selection",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        String courseId = (String) coursesTable.getValueAt(selectedRow, 0);
-        ArrayList<Lesson> lessons = LessonService.getLessons(courseId);
-        if (lessons.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "No lessons available to mark as complete.",
-                    "No Lessons",
-                    JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        ArrayList<Lesson> incompleteLessons = new ArrayList<>();
-        if(currentStudent.)
-        for (Lesson lesson : lessons) {
-            if (!lesson.isCompleted()) {
-                incompleteLessons.add(lesson);
-            }
-        }
-        if (incompleteLessons.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "All lessons are already completed!", "No Lessons", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        String[] lessonTitles = incompleteLessons.stream()
-                .map(Lesson::getTitle)
-                .toArray(String[]::new);
-
-        String selectedLesson = (String) JOptionPane.showInputDialog(this,
-                "Select lesson to mark as complete:",
-                "Mark Lesson Complete",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                lessonTitles,
-                lessonTitles[0]);
-
-        if (selectedLesson == null) return;
-        String lessonId = null;
-        for (Lesson lesson : incompleteLessons) {
-            if (lesson.getTitle().equals(selectedLesson)) {
-                lessonId = lesson.getLessonId();
-                break;
-            }
-        }
-
-        if (lessonId != null) {
-            boolean success = StudentService.markLessonCompleted(currentStudent, lessonId,courseId);
-
-            if (success) {
-                JOptionPane.showMessageDialog(this,
-                        "Lesson marked as complete! Progress updated.",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-                loadStudentData();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Lesson was already completed or failed to update",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+    private void viewCertificate() {
+        int selectedRow = certificatesTable.getSelectedRow();
+        if (selectedRow >= 0) {
+            String certificateId = (String) certificatesTable.getValueAt(selectedRow, 0);
+            String courseName = (String) certificatesTable.getValueAt(selectedRow, 1);
+            
+            JDialog certificateDialog = new JDialog(this, "Certificate - " + courseName, true);
+            certificateDialog.setSize(500, 400);
+            certificateDialog.setLocationRelativeTo(this);
+            
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            
+            JLabel titleLabel = new JLabel("Certificate of Completion", JLabel.CENTER);
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+            
+            JTextArea detailsArea = new JTextArea();
+            detailsArea.setEditable(false);
+            detailsArea.setFont(new Font("Arial", Font.PLAIN, 14));
+            detailsArea.setText(
+                "This certifies that\n\n" +
+                currentStudent.getUsername() + "\n\n" +
+                "has successfully completed the course\n\n" +
+                courseName + "\n\n" +
+                "Certificate ID: " + certificateId + "\n" +
+                "Issue Date: " + certificatesTable.getValueAt(selectedRow, 2)
+            );
+            detailsArea.setAlignmentX(JTextArea.CENTER_ALIGNMENT);
+            
+            JButton closeButton = new JButton("Close");
+            closeButton.addActionListener(e -> certificateDialog.dispose());
+            
+            panel.add(titleLabel, BorderLayout.NORTH);
+            panel.add(detailsArea, BorderLayout.CENTER);
+            panel.add(closeButton, BorderLayout.SOUTH);
+            
+            certificateDialog.add(panel);
+            certificateDialog.setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a certificate first", "No Selection", JOptionPane.WARNING_MESSAGE);
         }
     }
 
