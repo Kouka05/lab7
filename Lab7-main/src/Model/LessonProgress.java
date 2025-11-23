@@ -1,26 +1,22 @@
 package Model;
 
 public class LessonProgress {
-
-    private boolean completed;   // did the student finish the lesson?
-    private Integer quizScore;   // null if not taken
+    private boolean completed;
+    private Integer quizScore;
+    private int attempts;
 
     public LessonProgress() {
         this.completed = false;
         this.quizScore = null;
+        this.attempts = 0;
     }
 
     public boolean isCompleted() {
         return completed;
     }
 
-    public boolean setCompleted(boolean completed) {
-        if(quizScore==null)
-            return false;
-        else {
-            this.completed = completed;
-            return true;
-        }
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 
     public Integer getQuizScore() {
@@ -29,5 +25,22 @@ public class LessonProgress {
 
     public void setQuizScore(Integer quizScore) {
         this.quizScore = quizScore;
+        this.attempts++;
+        // Auto-complete if score is passing (>= 50)
+        if (quizScore != null && quizScore >= 50) {
+            this.completed = true;
+        }
+    }
+
+    public int getAttempts() {
+        return attempts;
+    }
+
+    public void setAttempts(int attempts) {
+        this.attempts = attempts;
+    }
+
+    public boolean isQuizPassed() {
+        return quizScore != null && quizScore >= 50;
     }
 }
