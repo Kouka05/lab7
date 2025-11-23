@@ -19,6 +19,13 @@ public class InstructorDashboardFrame extends JFrame {
     private JLabel welcomeLabel;
     private Instructor currentInstructor;
 
+    // Add component references for lesson management
+    private JTextField lessonTitleField;
+    private JTextArea lessonContentArea;
+    private JTextArea lessonResourcesArea;
+    private JTable quizTable;
+    private DefaultTableModel quizTableModel;
+
     public InstructorDashboardFrame(User user) {
         if (user instanceof Instructor) {
             this.currentInstructor = (Instructor) user;
@@ -570,15 +577,22 @@ public class InstructorDashboardFrame extends JFrame {
         lessonsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane listScroll = new JScrollPane(lessonsList);
 
-        // Create tabbed pane for lesson content and quiz
-        JTabbedPane contentTabs = new JTabbedPane();
+        // Create the lesson content components directly
+        lessonTitleField = new JTextField();
+        lessonContentArea = new JTextArea(8, 30);
+        lessonContentArea.setLineWrap(true);
+        lessonContentArea.setWrapStyleWord(true);
+        lessonResourcesArea = new JTextArea(3, 30);
+        lessonResourcesArea.setLineWrap(true);
 
-        // Lesson Content Tab
+        // Create lesson content panel
         JPanel lessonContentPanel = createLessonContentPanel();
-        contentTabs.addTab("Lesson Content", lessonContentPanel);
-
-        // Quiz Management Tab
+        
+        // Create quiz panel
         JPanel quizPanel = createQuizPanel();
+
+        JTabbedPane contentTabs = new JTabbedPane();
+        contentTabs.addTab("Lesson Content", lessonContentPanel);
         contentTabs.addTab("Quiz Management", quizPanel);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -587,33 +601,24 @@ public class InstructorDashboardFrame extends JFrame {
         JButton manageQuizButton = new JButton("Manage Quiz");
         JButton closeButton = new JButton("Close");
 
-        // Components for lesson content
-        JTextField titleField = (JTextField) ((JPanel) ((JPanel) lessonContentPanel.getComponent(0)).getComponent(1)).getComponent(0);
-        JTextArea contentArea = (JTextArea) ((JScrollPane) ((JPanel) ((JPanel) lessonContentPanel.getComponent(1)).getComponent(1)).getComponent(0)).getViewport().getView();
-        JTextArea resourcesArea = (JTextArea) ((JScrollPane) ((JPanel) ((JPanel) lessonContentPanel.getComponent(2)).getComponent(1)).getComponent(0)).getViewport().getView();
-
-        // Components for quiz management
-        JTable quizTable = (JTable) ((JScrollPane) ((JPanel) quizPanel.getComponent(0)).getComponent(0)).getViewport().getView();
-        DefaultTableModel quizTableModel = (DefaultTableModel) quizTable.getModel();
-
         lessonsList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int index = lessonsList.getSelectedIndex();
                 if (index >= 0) {
                     Lesson selectedLesson = lessons.get(index);
                     
-                    // Update lesson content tab
-                    titleField.setText(selectedLesson.getTitle());
-                    contentArea.setText(selectedLesson.getContent());
+                    // Update lesson content
+                    lessonTitleField.setText(selectedLesson.getTitle());
+                    lessonContentArea.setText(selectedLesson.getContent());
 
                     StringBuilder resourcesText = new StringBuilder();
                     for (String resource : selectedLesson.getResources()) {
                         resourcesText.append(resource).append("\n");
                     }
-                    resourcesArea.setText(resourcesText.toString());
+                    lessonResourcesArea.setText(resourcesText.toString());
 
                     // Update quiz management tab
-                    refreshQuizTable(quizTableModel, selectedLesson);
+                    refreshQuizTable(selectedLesson);
                 }
             }
         });
@@ -622,11 +627,11 @@ public class InstructorDashboardFrame extends JFrame {
             int index = lessonsList.getSelectedIndex();
             if (index >= 0) {
                 Lesson selectedLesson = lessons.get(index);
-                String newTitle = titleField.getText().trim();
-                String newContent = contentArea.getText().trim();
+                String newTitle = lessonTitleField.getText().trim();
+                String newContent = lessonContentArea.getText().trim();
 
                 ArrayList<String> newResources = new ArrayList<>();
-                String[] resourcesArray = resourcesArea.getText().split("\n");
+                String[] resourcesArray = lessonResourcesArea.getText().split("\n");
                 for (String resource : resourcesArray) {
                     if (!resource.trim().isEmpty()) {
                         newResources.add(resource.trim());
@@ -680,9 +685,9 @@ public class InstructorDashboardFrame extends JFrame {
                         if (!lessons.isEmpty()) {
                             lessonsList.setSelectedIndex(0);
                         } else {
-                            titleField.setText("");
-                            contentArea.setText("");
-                            resourcesArea.setText("");
+                            lessonTitleField.setText("");
+                            lessonContentArea.setText("");
+                            lessonResourcesArea.setText("");
                             quizTableModel.setRowCount(0);
                         }
                     } else {
@@ -724,24 +729,18 @@ public class InstructorDashboardFrame extends JFrame {
         // Title Panel
         JPanel titlePanel = new JPanel(new BorderLayout(5, 5));
         titlePanel.add(new JLabel("Lesson Title:"), BorderLayout.NORTH);
-        JTextField titleField = new JTextField();
-        titlePanel.add(titleField, BorderLayout.CENTER);
+        titlePanel.add(lessonTitleField, BorderLayout.CENTER);
 
         // Content Panel
         JPanel contentPanel = new JPanel(new BorderLayout(5, 5));
         contentPanel.add(new JLabel("Lesson Content:"), BorderLayout.NORTH);
-        JTextArea contentArea = new JTextArea(8, 30);
-        contentArea.setLineWrap(true);
-        contentArea.setWrapStyleWord(true);
-        JScrollPane contentScroll = new JScrollPane(contentArea);
+        JScrollPane contentScroll = new JScrollPane(lessonContentArea);
         contentPanel.add(contentScroll, BorderLayout.CENTER);
 
         // Resources Panel
         JPanel resourcesPanel = new JPanel(new BorderLayout(5, 5));
         resourcesPanel.add(new JLabel("Resources (one per line):"), BorderLayout.NORTH);
-        JTextArea resourcesArea = new JTextArea(3, 30);
-        resourcesArea.setLineWrap(true);
-        JScrollPane resourcesScroll = new JScrollPane(resourcesArea);
+        JScrollPane resourcesScroll = new JScrollPane(lessonResourcesArea);
         resourcesPanel.add(resourcesScroll, BorderLayout.CENTER);
 
         panel.add(titlePanel);
@@ -759,51 +758,32 @@ public class InstructorDashboardFrame extends JFrame {
 
         // Quiz table
         String[] columns = {"Question", "Options", "Correct Answer"};
-        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+        quizTableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
 
-        JTable quizTable = new JTable(model);
+        quizTable = new JTable(quizTableModel);
         JScrollPane tableScroll = new JScrollPane(quizTable);
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton addQuestionButton = new JButton("Add Question");
-        JButton editQuestionButton = new JButton("Edit Question");
-        JButton deleteQuestionButton = new JButton("Delete Question");
+        JButton refreshButton = new JButton("Refresh Quiz View");
 
-        styleActionButton(addQuestionButton);
-        styleActionButton(editQuestionButton);
-        styleActionButton(deleteQuestionButton);
+        styleActionButton(refreshButton);
 
-        addQuestionButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Please use 'Manage Quiz' button to add questions", "Info", JOptionPane.INFORMATION_MESSAGE);
-        });
-
-        editQuestionButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this, "Please use 'Manage Quiz' button to edit questions", "Info", JOptionPane.INFORMATION_MESSAGE);
-        });
-
-        deleteQuestionButton.addActionListener(e -> {
-            int selectedRow = quizTable.getSelectedRow();
-            if (selectedRow >= 0) {
-                int confirm = JOptionPane.showConfirmDialog(this,
-                        "Are you sure you want to delete this question?",
-                        "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    model.removeRow(selectedRow);
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Please select a question first", "No Selection", JOptionPane.WARNING_MESSAGE);
+        refreshButton.addActionListener(e -> {
+            int index = ((JList<String>) SwingUtilities.getAncestorOfClass(JList.class, quizTable)).getSelectedIndex();
+            if (index >= 0) {
+                // This would need access to the lessons list, which we don't have here
+                // For now, just show a message
+                JOptionPane.showMessageDialog(this, "Please use the 'Manage Quiz' button to modify quizzes", "Info", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
-        buttonPanel.add(addQuestionButton);
-        buttonPanel.add(editQuestionButton);
-        buttonPanel.add(deleteQuestionButton);
+        buttonPanel.add(refreshButton);
 
         panel.add(tableScroll, BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.SOUTH);
@@ -811,15 +791,15 @@ public class InstructorDashboardFrame extends JFrame {
         return panel;
     }
 
-    private void refreshQuizTable(DefaultTableModel model, Lesson lesson) {
-        model.setRowCount(0);
+    private void refreshQuizTable(Lesson lesson) {
+        quizTableModel.setRowCount(0);
 
         Quiz quiz = lesson.getQuiz();
         if (quiz != null && quiz.getQuestions() != null) {
             for (Question question : quiz.getQuestions()) {
                 String options = String.join(" | ", question.getOption());
                 String correctAnswer = question.getOption().get(question.getCorrectIndex());
-                model.addRow(new Object[]{
+                quizTableModel.addRow(new Object[]{
                     question.getQuestion(),
                     options,
                     correctAnswer
@@ -876,14 +856,13 @@ public class InstructorDashboardFrame extends JFrame {
         styleActionButton(saveButton);
         styleActionButton(cancelButton);
 
-        addButton.addActionListener(e -> showQuestionDialog(null, tableModel, questionsTable));
+        addButton.addActionListener(e -> showQuestionDialog(null, tableModel));
         editButton.addActionListener(e -> {
             int selectedRow = questionsTable.getSelectedRow();
             if (selectedRow >= 0) {
                 // For simplicity, we'll just remove and re-add
-                // In a real application, you'd want to edit in place
                 tableModel.removeRow(selectedRow);
-                showQuestionDialog(null, tableModel, questionsTable);
+                showQuestionDialog(null, tableModel);
             } else {
                 JOptionPane.showMessageDialog(quizDialog, "Please select a question to edit", "No Selection", JOptionPane.WARNING_MESSAGE);
             }
@@ -920,7 +899,7 @@ public class InstructorDashboardFrame extends JFrame {
         quizDialog.setVisible(true);
     }
 
-    private void showQuestionDialog(Question existingQuestion, DefaultTableModel tableModel, JTable questionsTable) {
+    private void showQuestionDialog(Question existingQuestion, DefaultTableModel tableModel) {
         JDialog questionDialog = new JDialog(this, "Add/Edit Question", true);
         questionDialog.setSize(500, 400);
         questionDialog.setLocationRelativeTo(this);
@@ -1070,12 +1049,8 @@ public class InstructorDashboardFrame extends JFrame {
             JOptionPane.showMessageDialog(quizDialog, "Quiz saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             quizDialog.dispose();
             
-            // Refresh the parent dialog to show quiz status
-            if (quizDialog.getOwner() != null) {
-                JOptionPane.showMessageDialog(quizDialog.getOwner(), 
-                    "Quiz has been saved. The lesson will now show '(Quiz)' indicator.", 
-                    "Quiz Updated", JOptionPane.INFORMATION_MESSAGE);
-            }
+            // Refresh the quiz table in the parent dialog
+            refreshQuizTable(lesson);
         } else {
             JOptionPane.showMessageDialog(quizDialog, "Failed to save quiz", "Error", JOptionPane.ERROR_MESSAGE);
         }
