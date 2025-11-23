@@ -92,19 +92,19 @@ public class StudentService {
         return success;
     }
 
-    public static boolean updateLessonProgress(Student student, String courseId, String lessonId, Integer quizScore) {
+    public static boolean updateLessonProgress(String studentId, String courseId, String lessonId, Integer quizScore) {
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
         
-        Student s = null;
+        Student student = null;
         for (User u : users) {
-            if (u instanceof Student && u.getUserId().equals(student.getUserId())) {
-                s = (Student) u;
+            if (u instanceof Student && u.getUserId().equals(studentId)) {
+                student = (Student) u;
                 break;
             }
         }
-        if (s == null) {
-            System.out.println("Student not found: " + student.getUserId());
+        if (student == null) {
+            System.out.println("Student not found: " + studentId);
             return false;
         }
 
@@ -121,35 +121,30 @@ public class StudentService {
         }
 
         // Get or create lesson progress
-        LessonProgress lessonProgress = s.getLessonProgress()
+        LessonProgress lessonProgress = student.getLessonProgress()
                 .computeIfAbsent(lessonId, k -> new LessonProgress());
 
         // Update quiz score if provided
         if (quizScore != null) {
             lessonProgress.setQuizScore(quizScore);
+        }
+
+        // Update course progress based on completed lessons
+        int totalLessons = course.getLessons().size();
+        if (totalLessons > 0) {
+            int completedLessons = countCompletedLessons(student, course);
+            int newProgress = (completedLessons * 100) / totalLessons;
+            student.updateProgress(courseId, newProgress);
             
-            // Mark as completed if quiz passed (score >= 50)
-            if (quizScore >= 50) {
-                lessonProgress.setCompleted(true);
-                
-                // Update course progress
-                int totalLessons = course.getLessons().size();
-                if (totalLessons > 0) {
-                    int completedLessons = countCompletedLessons(s, course);
-                    int newProgress = (completedLessons * 100) / totalLessons;
-                    s.updateProgress(courseId, newProgress);
-                    
-                    // Check if course is completed for certificate
-                    if (newProgress == 100) {
-                        generateCertificate(s, courseId);
-                    }
-                }
+            // Check if course is completed for certificate
+            if (newProgress == 100) {
+                generateCertificate(student, courseId);
             }
         }
 
         JSONDatabaseManager.saveCourses(courses);
         JSONDatabaseManager.saveUsers(users);
-        System.out.println("Lesson progress updated for student " + s.getUserId());
+        System.out.println("Lesson progress updated for student " + studentId);
         return true;
     }
 
@@ -188,5 +183,35 @@ public class StudentService {
             }
         }
         return new ArrayList<>();
+    }
+
+    public static boolean isLessonAccessible(Student student, String courseId, String lessonId) {
+        Course course = CourseService.getCourseById(courseId);
+        if (course == null) return false;
+
+        // Find the index of the current lesson
+        int currentLessonIndex = -1;
+        for (int i = 0; i < course.getLessons().size(); i++) {
+            if (course.getLessons().get(i).getLessonId().equals(lessonId)) {
+                currentLessonIndex = i;
+                break;
+            }
+        }
+
+        // First lesson is always accessible
+        if (currentLessonIndex == 0) return true;
+
+        // Check if previous lesson is completed
+        if (currentLessonIndex > 0) {
+            Lesson previousLesson = course.getLessons().get(currentLessonIndex - 1);
+            LessonProgress previousProgress = student.getLessonProgress().get(previousLesson.getLessonId());
+            return previousProgress != null && previousProgress.isCompleted();
+        }
+
+        return false;
+    }
+
+    public static LessonProgress getLessonProgress(Student student, String lessonId) {
+        return student.getLessonProgress().get(lessonId);
     }
 }
