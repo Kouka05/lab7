@@ -80,7 +80,6 @@ public class StudentService {
             if (u instanceof Student && u.getUserId().equals(studentId)) {
                 Student student = (Student) u;
                 student.dropCourse(courseId);
-
                 success = true;
                 break;
             }
@@ -92,24 +91,21 @@ public class StudentService {
         }
         return success;
     }
-    public static boolean markLessonCompleted(Student student, String lessonId,String courseId) {
 
-        // Get or create the LessonProgress object for this lesson
-        LessonProgress lp = student.getLessonProgress().computeIfAbsent(lessonId, k -> new LessonProgress());
-
-        // If quiz score is NOT set → cannot mark completed
-        if (lp.getQuizScore() == null) {
-            return false;
-        }
-
+    public static boolean updateLessonProgress(Student student, String courseId, String lessonId, Integer quizScore) {
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+        
         Student s = null;
         for (User u : users) {
             if (u instanceof Student && u.getUserId().equals(student.getUserId())) {
                 s = (Student) u;
                 break;
             }
+        }
+        if (s == null) {
+            System.out.println("Student not found: " + student.getUserId());
+            return false;
         }
 
         Course course = null;
@@ -123,91 +119,74 @@ public class StudentService {
             System.out.println("Course not found: " + courseId);
             return false;
         }
-        int totalLessons = course.getLessons().size();
-        if (totalLessons == 0) {
-            System.out.println("No lessons in course");
-            return false;
+
+        // Get or create lesson progress
+        LessonProgress lessonProgress = s.getLessonProgress()
+                .computeIfAbsent(lessonId, k -> new LessonProgress());
+
+        // Update quiz score if provided
+        if (quizScore != null) {
+            lessonProgress.setQuizScore(quizScore);
+            
+            // Mark as completed if quiz passed (score >= 50)
+            if (quizScore >= 50) {
+                lessonProgress.setCompleted(true);
+                
+                // Update course progress
+                int totalLessons = course.getLessons().size();
+                if (totalLessons > 0) {
+                    int completedLessons = countCompletedLessons(s, course);
+                    int newProgress = (completedLessons * 100) / totalLessons;
+                    s.updateProgress(courseId, newProgress);
+                    
+                    // Check if course is completed for certificate
+                    if (newProgress == 100) {
+                        generateCertificate(s, courseId);
+                    }
+                }
+            }
         }
 
-        // Otherwise mark lesson as completed
-        lp.setCompleted(true);
-
-                    int currentProgress = student.getProgress().getOrDefault(courseId, 0);
-            double progressPerLesson = 100.0 / totalLessons;
-            int newProgress = Math.min(100, (int)Math.round(currentProgress + progressPerLesson));
-            student.updateProgress(courseId, newProgress);
-            JSONDatabaseManager.saveCourses(courses);
-            JSONDatabaseManager.saveUsers(users);
-            System.out.println("Lesson " + lessonId + " marked completed for student " + s.getUserId());
-
+        JSONDatabaseManager.saveCourses(courses);
+        JSONDatabaseManager.saveUsers(users);
+        System.out.println("Lesson progress updated for student " + s.getUserId());
         return true;
     }
 
-
-
-
-    public void setQuizScore(Student student, String lessonId, int score) {
-        student.getLessonProgress()
-                .computeIfAbsent(lessonId, k -> new LessonProgress())
-                .setQuizScore(score);
+    private static int countCompletedLessons(Student student, Course course) {
+        int completed = 0;
+        for (Lesson lesson : course.getLessons()) {
+            LessonProgress progress = student.getLessonProgress().get(lesson.getLessonId());
+            if (progress != null && progress.isCompleted()) {
+                completed++;
+            }
+        }
+        return completed;
     }
 
-    public LessonProgress getLessonProgress(Student student, String lessonId) {
-        return student.getLessonProgress().get(lessonId);
+    private static void generateCertificate(Student student, String courseId) {
+        // Check if certificate already exists
+        for (Certificate cert : student.getCertificates()) {
+            if (cert.getCourseId().equals(courseId)) {
+                return; // Certificate already exists
+            }
+        }
+
+        // Generate new certificate
+        String certificateId = "CERT_" + student.getUserId() + "_" + courseId + "_" + System.currentTimeMillis();
+        Certificate certificate = new Certificate(certificateId, student.getUserId(), courseId);
+        student.addCertificate(certificate);
+        
+        System.out.println("Certificate generated: " + certificateId + " for student " + student.getUserId());
+    }
+
+    public static ArrayList<Certificate> getStudentCertificates(String studentId) {
+        ArrayList<User> users = JSONDatabaseManager.loadUsers();
+        for (User u : users) {
+            if (u instanceof Student && u.getUserId().equals(studentId)) {
+                return ((Student) u).getCertificates();
+            }
+        }
+        return new ArrayList<>();
     }
 }
-
-//    public static boolean markLessonCompleted(String studentId, String courseId, String lessonId) {
-//        ArrayList<User> users = JSONDatabaseManager.loadUsers();
-//        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-//        Student student = null;
-//        for (User u : users) {
-//            if (u instanceof Student && u.getUserId().equals(studentId)) {
-//                student = (Student) u;
-//                break;
-//            }
-//        }
-//        if (student == null) {
-//            System.out.println("Student not found: " + studentId);
-//            return false;
-//        }
-//        Course course = null;
-//        for (Course c : courses) {
-//            if (c.getCourseId().equals(courseId)) {
-//                course = c;
-//                break;
-//            }
-//        }
-//        if (course == null) {
-//            System.out.println("Course not found: " + courseId);
-//            return false;
-//        }
-//        int totalLessons = course.getLessons().size();
-//        if (totalLessons == 0) {
-//            System.out.println("No lessons in course");
-//            return false;
-//        }
-//        Lesson lessonCompleted = null;
-//        for (Lesson lesson : course.getLessons()) {
-//            if (lesson.getLessonId().equals(lessonId)) {
-//                lessonCompleted = lesson;
-//                break;
-//            }
-//        }
-//        if (lessonCompleted == null) return false;
-//        if (!lessonCompleted.isCompleted()) {
-//            lessonCompleted.setCompleted(true);
-//            int currentProgress = student.getProgress().getOrDefault(courseId, 0);
-//            double progressPerLesson = 100.0 / totalLessons;
-//            int newProgress = Math.min(100, (int)Math.round(currentProgress + progressPerLesson));
-//            student.updateProgress(courseId, newProgress);
-//            JSONDatabaseManager.saveCourses(courses);
-//            JSONDatabaseManager.saveUsers(users);
-//            System.out.println("Lesson " + lessonId + " marked completed for student " + studentId);
-//            return true;
-//        } else {
-//            System.out.println("Lesson already completed");
-//            return false;
-//        }
-//    }
-//}
