@@ -15,13 +15,47 @@ public class QuizService {
                     if (l.getLessonId().equals(lessonId)) {
                         l.setQuiz(quiz);
                         JSONDatabaseManager.saveCourses(courses);
-                        System.out.println("The quiz added successfully");
+                        System.out.println("Quiz added successfully to lesson: " + lessonId);
                         return true;
                     }
                 }
             }
         }
-        System.out.println("The quiz didn't added successfully");
+        System.out.println("Failed to add quiz to lesson: " + lessonId);
+        return false;
+    }
+    public static boolean updateQuiz(String courseId, String lessonId, Quiz updatedQuiz) {
+        return addQuizToLesson(courseId, lessonId, updatedQuiz);
+    }
+
+    public static Quiz getQuizForLesson(String courseId, String lessonId) {
+        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+        for (Course c : courses) {
+            if (c.getCourseId().equals(courseId)) {
+                for (Lesson l : c.getLessons()) {
+                    if (l.getLessonId().equals(lessonId)) {
+                        return l.getQuiz();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static boolean deleteQuiz(String courseId, String lessonId) {
+        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
+        for (Course c : courses) {
+            if (c.getCourseId().equals(courseId)) {
+                for (Lesson l : c.getLessons()) {
+                    if (l.getLessonId().equals(lessonId)) {
+                        l.setQuiz(new Quiz()); // Reset to empty quiz
+                        JSONDatabaseManager.saveCourses(courses);
+                        System.out.println("Quiz deleted successfully from lesson: " + lessonId);
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
