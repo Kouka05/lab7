@@ -212,6 +212,9 @@ public class StudentService {
     }
 
     public static LessonProgress getLessonProgress(Student student, String lessonId) {
-        return student.getLessonProgress().get(lessonId);
+    if (student == null || student.getLessonProgress() == null) {
+        return null;
     }
+    return student.getLessonProgress().get(lessonId);
+}
 }
