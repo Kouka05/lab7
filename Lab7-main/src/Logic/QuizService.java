@@ -24,40 +24,6 @@ public class QuizService {
         System.out.println("Failed to add quiz to lesson: " + lessonId);
         return false;
     }
-    public static boolean updateQuiz(String courseId, String lessonId, Quiz updatedQuiz) {
-        return addQuizToLesson(courseId, lessonId, updatedQuiz);
-    }
-
-    public static Quiz getQuizForLesson(String courseId, String lessonId) {
-        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-        for (Course c : courses) {
-            if (c.getCourseId().equals(courseId)) {
-                for (Lesson l : c.getLessons()) {
-                    if (l.getLessonId().equals(lessonId)) {
-                        return l.getQuiz();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public static boolean deleteQuiz(String courseId, String lessonId) {
-        ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-        for (Course c : courses) {
-            if (c.getCourseId().equals(courseId)) {
-                for (Lesson l : c.getLessons()) {
-                    if (l.getLessonId().equals(lessonId)) {
-                        l.setQuiz(new Quiz()); // Reset to empty quiz
-                        JSONDatabaseManager.saveCourses(courses);
-                        System.out.println("Quiz deleted successfully from lesson: " + lessonId);
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
 
     public static boolean submitQuiz(String studentId, String courseId, String lessonId, ArrayList<Integer> answers) {
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
@@ -135,7 +101,7 @@ public class QuizService {
         quiz.setAttemps(quiz.getAttemps() + 1);
 
         // Update student's lesson progress with the quiz score
-        boolean progressUpdated = StudentService.updateLessonProgress(student, courseId, lessonId, (int) score);
+        boolean progressUpdated = StudentService.updateLessonProgress(studentId, courseId, lessonId, (int) score);
 
         if (progressUpdated) {
             JSONDatabaseManager.saveCourses(courses);
