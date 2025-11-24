@@ -60,13 +60,26 @@ public class Student extends User {
     public void enrollCourse(String courseId) {
         if (!enrolledCourses.contains(courseId)) {
             enrolledCourses.add(courseId);
+            // Initialize progress to 0, not completed
             progress.put(courseId, 0);
+
+            // Don't initialize any lesson progress - it should be empty
+            // Lesson progress will be created when students actually take quizzes
         }
     }
 
     public void dropCourse(String courseId) {
         enrolledCourses.remove(courseId);
         progress.remove(courseId);
+
+        // Remove all lesson progress entries for this course
+        // Since lesson progress keys are now stored as courseId+lessonId,
+        // we need to remove all entries that start with the courseId
+        if (lessonProgress != null) {
+            lessonProgress.entrySet().removeIf(entry ->
+                    entry.getKey().startsWith(courseId)
+            );
+        }
     }
 
     public void updateProgress(String courseId, int value) {
@@ -79,5 +92,55 @@ public class Student extends User {
         if (certificate != null && !certificates.contains(certificate)) {
             certificates.add(certificate);
         }
+    }
+
+    /**
+     * Helper method to get lesson progress using the composite key format
+     * @param courseId the course ID
+     * @param lessonId the lesson ID
+     * @return the LessonProgress object or null if not found
+     */
+    public LessonProgress getLessonProgress(String courseId, String lessonId) {
+        if (lessonProgress == null) {
+            return null;
+        }
+        String progressKey = courseId + lessonId;
+        return lessonProgress.get(progressKey);
+    }
+
+    /**
+     * Helper method to update lesson progress using the composite key format
+     * @param courseId the course ID
+     * @param lessonId the lesson ID
+     * @param lessonProgressObj the LessonProgress object to store
+     */
+    public void updateLessonProgress(String courseId, String lessonId, LessonProgress lessonProgressObj) {
+        if (lessonProgress == null) {
+            lessonProgress = new HashMap<>();
+        }
+        String progressKey = courseId + lessonId;
+        lessonProgress.put(progressKey, lessonProgressObj);
+    }
+
+    /**
+     * Count completed lessons for a specific course
+     * @param courseId the course ID
+     * @return number of completed lessons
+     */
+    public int countCompletedLessonsInCourse(String courseId) {
+        if (lessonProgress == null) {
+            return 0;
+        }
+
+        int completed = 0;
+        for (Map.Entry<String, LessonProgress> entry : lessonProgress.entrySet()) {
+            // Check if the key starts with the courseId and the lesson is completed
+            if (entry.getKey().startsWith(courseId) &&
+                    entry.getValue() != null &&
+                    entry.getValue().isCompleted()) {
+                completed++;
+            }
+        }
+        return completed;
     }
 }

@@ -28,11 +28,11 @@ public class QuizService {
     public static boolean submitQuiz(String studentId, String courseId, String lessonId, ArrayList<Integer> answers) {
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
-        
+
         Student student = null;
         Course course = null;
         Lesson lesson = null;
-        
+
         // Find student
         for (User u : users) {
             if (u instanceof Student && u.getUserId().equals(studentId)) {
@@ -42,6 +42,12 @@ public class QuizService {
         }
         if (student == null) {
             System.out.println("Student with id: " + studentId + " was not found");
+            return false;
+        }
+
+        // Verify student is enrolled in the course
+        if (!student.getEnrolledCourses().contains(courseId)) {
+            System.out.println("Student " + studentId + " is not enrolled in course " + courseId);
             return false;
         }
 
@@ -75,21 +81,34 @@ public class QuizService {
             return false;
         }
 
+        // Validate that answers size matches questions size
+        if (answers.size() != quiz.getQuestions().size()) {
+            System.out.println("Number of answers (" + answers.size() + ") doesn't match number of questions (" + quiz.getQuestions().size() + ")");
+            return false;
+        }
+
         // Calculate score
         int questionNum = quiz.getQuestions().size();
         int rightAnswerCount = 0;
-        
+
         for (int i = 0; i < questionNum; i++) {
             int studentAnswerIndex = answers.get(i);
             Question correctQuestion = quiz.getQuestions().get(i);
-            if (studentAnswerIndex == correctQuestion.getCorrectIndex()) {
-                rightAnswerCount++;
+
+            // Validate answer index is within bounds
+            if (studentAnswerIndex >= 0 && studentAnswerIndex < correctQuestion.getOption().size()) {
+                if (studentAnswerIndex == correctQuestion.getCorrectIndex()) {
+                    rightAnswerCount++;
+                }
+            } else {
+                System.out.println("Invalid answer index for question " + i + ": " + studentAnswerIndex);
             }
         }
 
         float score = 0;
         try {
             score = (float) (rightAnswerCount * 100) / questionNum;
+            System.out.println("Quiz score calculated: " + rightAnswerCount + "/" + questionNum + " = " + score + "%");
         } catch (ArithmeticException e) {
             System.out.println("There are no questions in the quiz");
             return false;

@@ -1,5 +1,6 @@
 package Database;
 
+import Logic.StudentService;
 import Model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,9 +39,21 @@ public class JSONDatabaseManager {
     }
     public static ArrayList<User> loadUsers() {
         try {
-            return mapper.readValue(new File(USERS_FILE),
+            ArrayList<User> users = mapper.readValue(new File(USERS_FILE),
                     new TypeReference<ArrayList<User>>() {
                     });
+
+            // Validate student progress data
+            for (User user : users) {
+                if (user instanceof Student) {
+                    Student student = (Student) user;
+                    for (String courseId : student.getEnrolledCourses()) {
+                        StudentService.validateStudentProgress(student, courseId);
+                    }
+                }
+            }
+
+            return users;
         } catch (IOException e) {
             System.out.println("Error loading users!");
             return new ArrayList<>();

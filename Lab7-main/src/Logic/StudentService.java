@@ -4,6 +4,7 @@ import Database.JSONDatabaseManager;
 import Model.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class StudentService {
 
@@ -37,11 +38,28 @@ public class StudentService {
             System.out.println("Student not found: " + studentId);
             return false;
         }
+
+        // Ensure the student is not already enrolled
+        if (targetStudent.getEnrolledCourses().contains(courseId)) {
+            System.out.println("Student is already enrolled in this course: " + courseId);
+            return false;
+        }
+
         targetCourse.addStudent(studentId);
         targetStudent.enrollCourse(courseId);
+
+        // Initialize progress for the new course - set to 0%
+        targetStudent.updateProgress(courseId, 0);
+
+        // Ensure lesson progress map is initialized and empty for this course
+        if (targetStudent.getLessonProgress() == null) {
+            targetStudent.setLessonProgress(new HashMap<>());
+        }
+
+        // Don't initialize any lesson progress - let it be created when students actually take quizzes
         JSONDatabaseManager.saveCourses(courses);
         JSONDatabaseManager.saveUsers(users);
-        System.out.println("Student " + studentId + " enrolled in course " + courseId);
+        System.out.println("Student " + studentId + " enrolled in course " + courseId + " with initial progress 0%");
         return true;
     }
 
@@ -95,7 +113,7 @@ public class StudentService {
     public static boolean updateLessonProgress(String studentId, String courseId, String lessonId, Integer quizScore) {
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
         ArrayList<Course> courses = JSONDatabaseManager.loadCourses();
-        
+
         Student student = null;
         for (User u : users) {
             if (u instanceof Student && u.getUserId().equals(studentId)) {
@@ -121,12 +139,14 @@ public class StudentService {
         }
 
         // Get or create lesson progress
+        String progressKey = courseId + lessonId;
         LessonProgress lessonProgress = student.getLessonProgress()
-                .computeIfAbsent(lessonId, k -> new LessonProgress());
+                .computeIfAbsent(progressKey, k -> new LessonProgress());
 
         // Update quiz score if provided
         if (quizScore != null) {
             lessonProgress.setQuizScore(quizScore);
+            lessonProgress.setCompleted(true); // Mark as completed when quiz score is provided
         }
 
         // Update course progress based on completed lessons
@@ -135,7 +155,7 @@ public class StudentService {
             int completedLessons = countCompletedLessons(student, course);
             int newProgress = (completedLessons * 100) / totalLessons;
             student.updateProgress(courseId, newProgress);
-            
+
             // Check if course is completed for certificate
             if (newProgress == 100) {
                 generateCertificate(student, courseId);
@@ -151,7 +171,9 @@ public class StudentService {
     private static int countCompletedLessons(Student student, Course course) {
         int completed = 0;
         for (Lesson lesson : course.getLessons()) {
-            LessonProgress progress = student.getLessonProgress().get(lesson.getLessonId());
+            // Use the same key format as in updateLessonProgress: courseId + lessonId
+            String progressKey = course.getCourseId() + lesson.getLessonId();
+            LessonProgress progress = student.getLessonProgress().get(progressKey);
             if (progress != null && progress.isCompleted()) {
                 completed++;
             }
@@ -171,7 +193,7 @@ public class StudentService {
         String certificateId = "CERT_" + student.getUserId() + "_" + courseId + "_" + System.currentTimeMillis();
         Certificate certificate = new Certificate(certificateId, student.getUserId(), courseId);
         student.addCertificate(certificate);
-        
+
         System.out.println("Certificate generated: " + certificateId + " for student " + student.getUserId());
     }
 
@@ -204,17 +226,59 @@ public class StudentService {
         // Check if previous lesson is completed
         if (currentLessonIndex > 0) {
             Lesson previousLesson = course.getLessons().get(currentLessonIndex - 1);
-            LessonProgress previousProgress = student.getLessonProgress().get(previousLesson.getLessonId());
+            // Use the same key format as in updateLessonProgress: courseId + lessonId
+            String previousKey = courseId + previousLesson.getLessonId();
+            LessonProgress previousProgress = student.getLessonProgress().get(previousKey);
             return previousProgress != null && previousProgress.isCompleted();
         }
 
         return false;
     }
 
-    public static LessonProgress getLessonProgress(Student student, String lessonId) {
-    if (student == null || student.getLessonProgress() == null) {
-        return null;
+    public static LessonProgress getLessonProgress(Student student, String courseId, String lessonId) {
+        if (student == null || student.getLessonProgress() == null) {
+            return null;
+        }
+        // Use the same key format as in updateLessonProgress: courseId + lessonId
+        String progressKey = courseId + lessonId;
+        return student.getLessonProgress().get(progressKey);
     }
-    return student.getLessonProgress().get(lessonId);
-}
+
+    public static boolean validateStudentProgress(Student student, String courseId) {
+        if (student == null || courseId == null) return false;
+
+        // Check if student is actually enrolled in the course
+        if (!student.getEnrolledCourses().contains(courseId)) {
+            System.out.println("Student " + student.getUserId() + " is not enrolled in course " + courseId);
+            return false;
+        }
+
+        Course course = CourseService.getCourseById(courseId);
+        if (course == null) {
+            System.out.println("Course " + courseId + " not found");
+            return false;
+        }
+
+        // Validate that progress doesn't exceed 100% or show completion without actual quiz results
+        Integer courseProgress = student.getProgress().get(courseId);
+        if (courseProgress != null && courseProgress > 100) {
+            System.out.println("Invalid progress value: " + courseProgress + " for student " + student.getUserId());
+            student.updateProgress(courseId, 100); // Cap at 100%
+        }
+
+        // Validate lesson progress - ensure completed lessons have quiz scores
+        if (student.getLessonProgress() != null) {
+            for (Lesson lesson : course.getLessons()) {
+                // Use the same key format as in updateLessonProgress: courseId + lessonId
+                String progressKey = courseId + lesson.getLessonId();
+                LessonProgress lp = student.getLessonProgress().get(progressKey);
+                if (lp != null && lp.isCompleted() && lp.getQuizScore() == null) {
+                    System.out.println("Invalid: Lesson " + lesson.getLessonId() + " marked completed without quiz score");
+                    lp.setCompleted(false); // Reset completion status
+                }
+            }
+        }
+
+        return true;
+    }
 }

@@ -63,12 +63,30 @@ public class StudentDashboardFrame extends JFrame {
         ArrayList<User> users = JSONDatabaseManager.loadUsers();
         for (User user : users) {
             if (user.getUserId().equals(currentStudent.getUserId()) && user instanceof Student) {
-                currentStudent = (Student) user;
-                // Ensure lesson progress map is initialized
+                Student updatedStudent = (Student) user;
+
+                // Preserve the current progress bar reference if it exists
+                if (this.currentStudent != null && overallProgressBar != null) {
+                    int oldProgress = overallProgressBar.getValue();
+                    // You might want to compare with new progress and update if different
+                }
+
+                this.currentStudent = updatedStudent;
+                AuthenticationService.updateLoggedInUser(currentStudent);
+
+                // Ensure all maps are initialized
+                if (currentStudent.getProgress() == null) {
+                    currentStudent.setProgress(new HashMap<>());
+                }
                 if (currentStudent.getLessonProgress() == null) {
                     currentStudent.setLessonProgress(new HashMap<>());
                 }
-                AuthenticationService.updateLoggedInUser(currentStudent);
+                if (currentStudent.getCertificates() == null) {
+                    currentStudent.setCertificates(new ArrayList<>());
+                }
+
+                System.out.println("Student data refreshed. Progress: " +
+                        currentStudent.getProgress().toString());
                 break;
             }
         }
@@ -246,25 +264,189 @@ public class StudentDashboardFrame extends JFrame {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // Main progress panel
+        JPanel mainProgressPanel = new JPanel();
+        mainProgressPanel.setLayout(new BoxLayout(mainProgressPanel, BoxLayout.Y_AXIS));
+        mainProgressPanel.setBackground(Color.WHITE);
+
+        // Overall Progress Section
         JPanel overallProgressPanel = new JPanel(new BorderLayout());
         overallProgressPanel.setBackground(Color.WHITE);
-        overallProgressPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-
-        JLabel progressLabel = new JLabel("Overall Learning Progress");
-        progressLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        overallProgressPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(0, 102, 204)),
+                "Overall Learning Progress"
+        ));
 
         overallProgressBar = new JProgressBar(0, 100);
         overallProgressBar.setValue(0);
         overallProgressBar.setStringPainted(true);
-        overallProgressBar.setFont(new Font("Arial", Font.BOLD, 12));
+        overallProgressBar.setFont(new Font("Arial", Font.BOLD, 14));
         overallProgressBar.setForeground(new Color(0, 150, 0));
+        overallProgressBar.setBackground(new Color(220, 220, 220));
+        overallProgressBar.setPreferredSize(new Dimension(300, 30));
 
-        overallProgressPanel.add(progressLabel, BorderLayout.NORTH);
+        JLabel progressValueLabel = new JLabel("0%");
+        progressValueLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        progressValueLabel.setForeground(new Color(0, 102, 204));
+
         overallProgressPanel.add(overallProgressBar, BorderLayout.CENTER);
+        overallProgressPanel.add(progressValueLabel, BorderLayout.EAST);
 
-        panel.add(overallProgressPanel, BorderLayout.NORTH);
+        // Course-wise Progress Section
+        JPanel coursesProgressPanel = new JPanel();
+        coursesProgressPanel.setLayout(new BoxLayout(coursesProgressPanel, BoxLayout.Y_AXIS));
+        coursesProgressPanel.setBackground(Color.WHITE);
+        coursesProgressPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(0, 102, 204)),
+                "Course Progress"
+        ));
+
+        // Create a panel to hold course progress bars
+        JPanel coursesContainer = new JPanel();
+        coursesContainer.setLayout(new BoxLayout(coursesContainer, BoxLayout.Y_AXIS));
+        coursesContainer.setBackground(Color.WHITE);
+
+        JScrollPane coursesScroll = new JScrollPane(coursesContainer);
+        coursesScroll.setPreferredSize(new Dimension(500, 200));
+        coursesScroll.setBorder(BorderFactory.createEmptyBorder());
+
+        coursesProgressPanel.add(coursesScroll);
+
+        // Refresh button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton refreshButton = new JButton("Refresh Progress");
+        styleActionButton(refreshButton);
+
+        refreshButton.addActionListener(e -> {
+            refreshCurrentStudent();
+            updateProgressDisplay(progressValueLabel, coursesContainer);
+        });
+
+        buttonPanel.add(refreshButton);
+
+        mainProgressPanel.add(overallProgressPanel);
+        mainProgressPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainProgressPanel.add(coursesProgressPanel);
+        mainProgressPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        mainProgressPanel.add(buttonPanel);
+
+        panel.add(mainProgressPanel, BorderLayout.CENTER);
+
+        // Initial update
+        updateProgressDisplay(progressValueLabel, coursesContainer);
 
         return panel;
+    }
+
+    private void updateProgressDisplay(JLabel progressValueLabel, JPanel coursesContainer) {
+        // Calculate overall progress
+        int totalProgress = 0;
+        int courseCount = currentStudent.getEnrolledCourses().size();
+
+        if (courseCount > 0) {
+            for (int progress : currentStudent.getProgress().values()) {
+                totalProgress += progress;
+            }
+            int averageProgress = totalProgress / courseCount;
+            overallProgressBar.setValue(averageProgress);
+            progressValueLabel.setText(averageProgress + "%");
+        } else {
+            overallProgressBar.setValue(0);
+            progressValueLabel.setText("0%");
+        }
+
+        // Update course-wise progress
+        updateCourseProgressBars(coursesContainer);
+    }
+
+    private void updateCourseProgressBars(JPanel coursesContainer) {
+        coursesContainer.removeAll();
+
+        ArrayList<Course> enrolledCourses = StudentService.getEnrolledCourses(currentStudent.getUserId());
+
+        if (enrolledCourses.isEmpty()) {
+            JLabel noCoursesLabel = new JLabel("No enrolled courses");
+            noCoursesLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+            noCoursesLabel.setForeground(Color.GRAY);
+            coursesContainer.add(noCoursesLabel);
+        } else {
+            for (Course course : enrolledCourses) {
+                JPanel coursePanel = new JPanel(new BorderLayout());
+                coursePanel.setBackground(Color.WHITE);
+                coursePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                coursePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+
+                // Course name and progress label
+                JPanel infoPanel = new JPanel(new BorderLayout());
+                infoPanel.setBackground(Color.WHITE);
+
+                JLabel courseNameLabel = new JLabel(course.getTitle());
+                courseNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+                int progress = currentStudent.getProgress().getOrDefault(course.getCourseId(), 0);
+                JLabel progressLabel = new JLabel(progress + "%");
+                progressLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                progressLabel.setForeground(new Color(0, 102, 204));
+
+                infoPanel.add(courseNameLabel, BorderLayout.WEST);
+                infoPanel.add(progressLabel, BorderLayout.EAST);
+
+                // Progress bar
+                JProgressBar courseProgressBar = new JProgressBar(0, 100);
+                courseProgressBar.setValue(progress);
+                courseProgressBar.setStringPainted(true);
+                courseProgressBar.setForeground(getProgressColor(progress));
+                courseProgressBar.setBackground(new Color(220, 220, 220));
+                courseProgressBar.setString(progress + "%");
+
+                // Lesson completion details
+                JPanel detailsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                detailsPanel.setBackground(Color.WHITE);
+
+                int totalLessons = course.getLessons().size();
+                int completedLessons = countCompletedLessonsInCourse(course);
+
+                JLabel detailsLabel = new JLabel(
+                        String.format("Lessons: %d/%d completed", completedLessons, totalLessons)
+                );
+                detailsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                detailsLabel.setForeground(Color.DARK_GRAY);
+                detailsPanel.add(detailsLabel);
+
+                coursePanel.add(infoPanel, BorderLayout.NORTH);
+                coursePanel.add(courseProgressBar, BorderLayout.CENTER);
+                coursePanel.add(detailsPanel, BorderLayout.SOUTH);
+
+                coursesContainer.add(coursePanel);
+                coursesContainer.add(Box.createRigidArea(new Dimension(0, 10)));
+            }
+        }
+
+        coursesContainer.revalidate();
+        coursesContainer.repaint();
+    }
+
+    private int countCompletedLessonsInCourse(Course course) {
+        int completed = 0;
+        for (Lesson lesson : course.getLessons()) {
+            // Use the same key format as in StudentService: courseId + lessonId
+            String progressKey = course.getCourseId() + lesson.getLessonId();
+            LessonProgress progress = currentStudent.getLessonProgress().get(progressKey);
+            if (progress != null && progress.isCompleted()) {
+                completed++;
+            }
+        }
+        return completed;
+    }
+
+    private Color getProgressColor(int progress) {
+        if (progress < 30) {
+            return new Color(220, 20, 60); // Red
+        } else if (progress < 70) {
+            return new Color(255, 165, 0); // Orange
+        } else {
+            return new Color(50, 205, 50); // Green
+        }
     }
 
     private void refreshEnrolledCoursesTable() {
@@ -344,15 +526,65 @@ public class StudentDashboardFrame extends JFrame {
     }
 
     private void refreshProgress() {
-        int totalProgress = 0;
-        int courseCount = currentStudent.getEnrolledCourses().size();
+        // This method is called from loadStudentData to update the progress bar
+        // The actual progress bar update is now handled in updateProgressDisplay
+        // We need to ensure the Progress tab gets updated when student data changes
 
-        for (int progress : currentStudent.getProgress().values()) {
-            totalProgress += progress;
+        // If the progress panel components are initialized, update them
+        if (overallProgressBar != null) {
+            Component[] components = getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JTabbedPane) {
+                    JTabbedPane tabbedPane = (JTabbedPane) comp;
+                    for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                        Component tabComponent = tabbedPane.getComponentAt(i);
+                        if (tabComponent instanceof JPanel) {
+                            // Look for the progress panel and refresh it
+                            refreshProgressPanel((JPanel) tabComponent);
+                        }
+                    }
+                }
+            }
         }
+    }
 
-        int averageProgress = courseCount > 0 ? totalProgress / courseCount : 0;
-        overallProgressBar.setValue(averageProgress);
+    private void refreshProgressPanel(JPanel panel) {
+        // Recursively look for progress bar components and update them
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof JProgressBar) {
+                JProgressBar progressBar = (JProgressBar) comp;
+                if (progressBar == overallProgressBar) {
+                    // Update the overall progress bar
+                    int totalProgress = 0;
+                    int courseCount = currentStudent.getEnrolledCourses().size();
+
+                    if (courseCount > 0) {
+                        for (int progress : currentStudent.getProgress().values()) {
+                            totalProgress += progress;
+                        }
+                        int averageProgress = totalProgress / courseCount;
+                        progressBar.setValue(averageProgress);
+
+                        // Update the label if it exists
+                        Container parent = progressBar.getParent();
+                        if (parent != null) {
+                            for (Component child : parent.getComponents()) {
+                                if (child instanceof JLabel) {
+                                    JLabel label = (JLabel) child;
+                                    if (label.getText().contains("%")) {
+                                        label.setText(averageProgress + "%");
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        progressBar.setValue(0);
+                    }
+                }
+            } else if (comp instanceof JPanel) {
+                refreshProgressPanel((JPanel) comp);
+            }
+        }
     }
 
     private void enrollInSelectedCourse() {
@@ -437,7 +669,10 @@ public class StudentDashboardFrame extends JFrame {
             DefaultListModel<String> listModel = new DefaultListModel<>();
             for (int i = 0; i < lessons.size(); i++) {
                 Lesson lesson = lessons.get(i);
-                LessonProgress progress = currentStudent.getLessonProgress().get(lesson.getLessonId());
+
+                // Always get fresh progress data for this specific lesson using the correct key format
+                String progressKey = courseId + lesson.getLessonId();
+                LessonProgress progress = currentStudent.getLessonProgress().get(progressKey);
 
                 String status = "";
                 if (progress != null) {
@@ -483,7 +718,8 @@ public class StudentDashboardFrame extends JFrame {
                         }
 
                         // Show completed lessons with green text
-                        LessonProgress progress = currentStudent.getLessonProgress().get(lesson.getLessonId());
+                        String progressKey = courseId + lesson.getLessonId();
+                        LessonProgress progress = currentStudent.getLessonProgress().get(progressKey);
                         if (progress != null && progress.isCompleted()) {
                             setForeground(new Color(0, 128, 0)); // Green for completed
                         } else if (progress != null && progress.getQuizScore() != null) {
@@ -562,7 +798,8 @@ public class StudentDashboardFrame extends JFrame {
                         // Update quiz panel
                         quizPanel.removeAll();
                         Quiz lessonQuiz = selectedLesson.getQuiz();
-                        LessonProgress progress = currentStudent.getLessonProgress().get(selectedLesson.getLessonId());
+                        String progressKey = courseId + selectedLesson.getLessonId();
+                        LessonProgress progress = currentStudent.getLessonProgress().get(progressKey);
 
                         if (lessonQuiz != null && !lessonQuiz.getQuestions().isEmpty()) {
                             // Check if already completed
@@ -742,7 +979,7 @@ public class StudentDashboardFrame extends JFrame {
             }
 
             // Show loading message
-            JOptionPane.showMessageDialog(quizDialog, "Submitting quiz...", "Please Wait", JOptionPane.INFORMATION_MESSAGE);
+           // JOptionPane.showMessageDialog(quizDialog, "Submitting quiz...", "Please Wait", JOptionPane.INFORMATION_MESSAGE);
 
             // Submit quiz
             boolean success = QuizService.submitQuiz(currentStudent.getUserId(), courseId, lesson.getLessonId(), answers);
@@ -751,8 +988,10 @@ public class StudentDashboardFrame extends JFrame {
                 // Refresh the current student data from the database
                 refreshCurrentStudent();
 
-                // Get the updated progress to show score
-                LessonProgress updatedProgress = StudentService.getLessonProgress(currentStudent, lesson.getLessonId());
+                // Get the updated progress to show score using the correct method signature
+                LessonProgress updatedProgress = currentStudent.getLessonProgress().get(courseId+lesson.getLessonId());
+
+                System.out.println(updatedProgress);
 
                 String message;
                 if (updatedProgress != null && updatedProgress.isCompleted()) {
@@ -801,37 +1040,37 @@ public class StudentDashboardFrame extends JFrame {
         if (selectedRow >= 0) {
             String certificateId = (String) certificatesTable.getValueAt(selectedRow, 0);
             String courseName = (String) certificatesTable.getValueAt(selectedRow, 1);
-            
+
             JDialog certificateDialog = new JDialog(this, "Certificate - " + courseName, true);
             certificateDialog.setSize(500, 400);
             certificateDialog.setLocationRelativeTo(this);
-            
+
             JPanel panel = new JPanel(new BorderLayout());
             panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            
+
             JLabel titleLabel = new JLabel("Certificate of Completion", JLabel.CENTER);
             titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-            
+
             JTextArea detailsArea = new JTextArea();
             detailsArea.setEditable(false);
             detailsArea.setFont(new Font("Arial", Font.PLAIN, 14));
             detailsArea.setText(
-                "This certifies that\n\n" +
-                currentStudent.getUsername() + "\n\n" +
-                "has successfully completed the course\n\n" +
-                courseName + "\n\n" +
-                "Certificate ID: " + certificateId + "\n" +
-                "Issue Date: " + certificatesTable.getValueAt(selectedRow, 2)
+                    "This certifies that\n\n" +
+                            currentStudent.getUsername() + "\n\n" +
+                            "has successfully completed the course\n\n" +
+                            courseName + "\n\n" +
+                            "Certificate ID: " + certificateId + "\n" +
+                            "Issue Date: " + certificatesTable.getValueAt(selectedRow, 2)
             );
             detailsArea.setAlignmentX(JTextArea.CENTER_ALIGNMENT);
-            
+
             JButton closeButton = new JButton("Close");
             closeButton.addActionListener(e -> certificateDialog.dispose());
-            
+
             panel.add(titleLabel, BorderLayout.NORTH);
             panel.add(detailsArea, BorderLayout.CENTER);
             panel.add(closeButton, BorderLayout.SOUTH);
-            
+
             certificateDialog.add(panel);
             certificateDialog.setVisible(true);
         } else {
@@ -854,6 +1093,4 @@ public class StudentDashboardFrame extends JFrame {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
     }
-
-
 }
