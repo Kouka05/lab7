@@ -6,10 +6,10 @@
   "role" : 2,
   "type" : "instructor",
   "createdCourses" : [ "C1", "C2", "C3" ],
-  "roleString" : "Instructor",
-  "instructor" : true,
   "admin" : false,
-  "student" : false
+  "student" : false,
+  "roleString" : "Instructor",
+  "instructor" : true
 }, {
   "userId" : "S2",
   "username" : "abc",
@@ -19,14 +19,39 @@
   "type" : "student",
   "enrolledCourses" : [ "C1" ],
   "progress" : {
-    "C1" : 0
+    "C1" : 100
   },
-  "lessonProgress" : { },
-  "certificates" : [ ],
-  "roleString" : "Student",
-  "instructor" : false,
+  "lessonProgress" : {
+    "L1" : {
+      "completed" : true,
+      "quizScore" : 50,
+      "attempts" : 3,
+      "quizPassed" : true
+    },
+    "C1L1" : {
+      "completed" : true,
+      "quizScore" : 50,
+      "attempts" : 2,
+      "quizPassed" : true
+    },
+    "C1L2" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    }
+  },
+  "certificates" : [ {
+    "certificateId" : "CERT_S2_C1_1763948180802",
+    "studentId" : "S2",
+    "courseId" : "C1",
+    "issueDate" : 1763948180806,
+    "certificateUrl" : null
+  } ],
   "admin" : false,
-  "student" : true
+  "student" : true,
+  "roleString" : "Student",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -34,10 +59,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "S4",
   "username" : "alo",
@@ -51,10 +76,10 @@
   },
   "lessonProgress" : { },
   "certificates" : [ ],
-  "roleString" : "Student",
-  "instructor" : false,
   "admin" : false,
-  "student" : true
+  "student" : true,
+  "roleString" : "Student",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -62,10 +87,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -73,10 +98,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -84,10 +109,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -95,10 +120,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "S9",
   "username" : "bac",
@@ -145,10 +170,10 @@
     "issueDate" : 1763936479587,
     "certificateUrl" : null
   } ],
-  "roleString" : "Student",
-  "instructor" : false,
   "admin" : false,
-  "student" : true
+  "student" : true,
+  "roleString" : "Student",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -156,10 +181,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -167,10 +192,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -178,10 +203,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -189,10 +214,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -200,10 +225,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "S15",
   "username" : "abc",
@@ -219,15 +244,15 @@
     "L1" : {
       "completed" : true,
       "quizScore" : 50,
-      "attempts" : 9,
+      "attempts" : 11,
       "quizPassed" : true
     }
   },
   "certificates" : [ ],
-  "roleString" : "Student",
-  "instructor" : false,
   "admin" : false,
-  "student" : true
+  "student" : true,
+  "roleString" : "Student",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -235,10 +260,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -246,8 +271,119 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
-  "instructor" : false,
   "admin" : true,
-  "student" : false
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
+}, {
+  "userId" : "A1",
+  "username" : "admin",
+  "email" : "admin@gmail.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 3,
+  "type" : "admin",
+  "admin" : true,
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
+}, {
+  "userId" : "A1",
+  "username" : "admin",
+  "email" : "admin@gmail.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 3,
+  "type" : "admin",
+  "admin" : true,
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
+}, {
+  "userId" : "A1",
+  "username" : "admin",
+  "email" : "admin@gmail.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 3,
+  "type" : "admin",
+  "admin" : true,
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
+}, {
+  "userId" : "S21",
+  "username" : "dog",
+  "email" : "dog@d.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 1,
+  "type" : "student",
+  "enrolledCourses" : [ "C1", "C2" ],
+  "progress" : {
+    "C1" : 100,
+    "C2" : 100
+  },
+  "lessonProgress" : {
+    "L1" : {
+      "completed" : true,
+      "quizScore" : 50,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C1L1" : {
+      "completed" : true,
+      "quizScore" : 50,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C1L2" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 2,
+      "quizPassed" : true
+    },
+    "C2L1" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C2L2" : {
+      "completed" : true,
+      "quizScore" : 66,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C2L3" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 2,
+      "quizPassed" : true
+    }
+  },
+  "certificates" : [ {
+    "certificateId" : "CERT_S21_C1_1763947680378",
+    "studentId" : "S21",
+    "courseId" : "C1",
+    "issueDate" : 1763947680381,
+    "certificateUrl" : null
+  }, {
+    "certificateId" : "CERT_S21_C2_1763947835205",
+    "studentId" : "S21",
+    "courseId" : "C2",
+    "issueDate" : 1763947835205,
+    "certificateUrl" : null
+  } ],
+  "admin" : false,
+  "student" : true,
+  "roleString" : "Student",
+  "instructor" : false
+}, {
+  "userId" : "A1",
+  "username" : "admin",
+  "email" : "admin@gmail.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 3,
+  "type" : "admin",
+  "admin" : true,
+  "student" : false,
+  "roleString" : "Admin",
+  "instructor" : false
 } ]

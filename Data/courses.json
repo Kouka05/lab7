@@ -21,7 +21,7 @@
       } ],
       "completed" : true,
       "score" : 50.0,
-      "attemps" : 13
+      "attemps" : 23
     }
   }, {
     "lessonId" : "L2",
@@ -35,7 +35,7 @@
       "attemps" : 0
     }
   } ],
-  "students" : [ "S9", "S15" ],
+  "students" : [ "S9", "S15", "S21", "S2" ],
   "approvalStatusString" : "Approved"
 }, {
   "courseId" : "C2",
@@ -59,8 +59,8 @@
         "option" : [ "htey", "ehrtert", "hreth" ]
       } ],
       "completed" : true,
-      "score" : 50.0,
-      "attemps" : 1
+      "score" : 100.0,
+      "attemps" : 4
     }
   }, {
     "lessonId" : "L2",
@@ -83,7 +83,7 @@
       } ],
       "completed" : true,
       "score" : 66.666664,
-      "attemps" : 1
+      "attemps" : 3
     }
   }, {
     "lessonId" : "L3",
@@ -97,7 +97,7 @@
       "attemps" : 0
     }
   } ],
-  "students" : [ "S9" ],
+  "students" : [ "S9", "S21" ],
   "approvalStatusString" : "Approved"
 }, {
   "courseId" : "C3",

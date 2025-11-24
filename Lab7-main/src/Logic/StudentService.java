@@ -260,7 +260,7 @@ public class StudentService {
         }
 
         // Validate that progress doesn't exceed 100% or show completion without actual quiz results
-        Integer courseProgress = student.getProgress().get(courseId);
+        Integer courseProgress = student.getProgress().get(courseId+course.getCourseId());
         if (courseProgress != null && courseProgress > 100) {
             System.out.println("Invalid progress value: " + courseProgress + " for student " + student.getUserId());
             student.updateProgress(courseId, 100); // Cap at 100%

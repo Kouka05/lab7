@@ -880,6 +880,7 @@ public class StudentDashboardFrame extends JFrame {
                                             JOptionPane.showMessageDialog(lessonsDialog,
                                                     "Lesson marked as completed!", "Success",
                                                     JOptionPane.INFORMATION_MESSAGE);
+                                            refreshCurrentStudent();
                                             lessonsDialog.dispose();
                                             viewCourseLessons(); // Refresh
                                         }
@@ -989,7 +990,9 @@ public class StudentDashboardFrame extends JFrame {
                 refreshCurrentStudent();
 
                 // Get the updated progress to show score using the correct method signature
+
                 LessonProgress updatedProgress = currentStudent.getLessonProgress().get(courseId+lesson.getLessonId());
+                System.out.println(currentStudent.getLessonProgress());
 
                 System.out.println(updatedProgress);
 

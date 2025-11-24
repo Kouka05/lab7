@@ -138,7 +138,7 @@ public class QuizService {
         try {
             // Get or create lesson progress
             LessonProgress lessonProgress = student.getLessonProgress()
-                    .computeIfAbsent(lessonId, k -> new LessonProgress());
+                    .computeIfAbsent(courseId+lessonId, k -> new LessonProgress());
 
             // Update the quiz score - this automatically handles completion if score >= 50
             lessonProgress.setQuizScore(quizScore);
