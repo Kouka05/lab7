@@ -144,28 +144,32 @@ public class StudentService {
                 .computeIfAbsent(progressKey, k -> new LessonProgress());
 
         // Update quiz score if provided
-        if (quizScore != null) {
+        if (quizScore != null&&quizScore>50) {
             lessonProgress.setQuizScore(quizScore);
             lessonProgress.setCompleted(true); // Mark as completed when quiz score is provided
         }
 
         // Update course progress based on completed lessons
-        int totalLessons = course.getLessons().size();
-        if (totalLessons > 0) {
-            int completedLessons = countCompletedLessons(student, course);
-            int newProgress = (completedLessons * 100) / totalLessons;
-            student.updateProgress(courseId, newProgress);
+        if(quizScore>=50) {
+            int totalLessons = course.getLessons().size();
+            if (totalLessons > 0) {
+                int completedLessons = countCompletedLessons(student, course);
+                System.out.println("Completed lessons: " + completedLessons);
+                int newProgress = (completedLessons * 100) / totalLessons;
+                student.updateProgress(courseId, newProgress);
 
-            // Check if course is completed for certificate
-            if (newProgress == 100) {
-                generateCertificate(student, courseId);
+                // Check if course is completed for certificate
+                if (newProgress == 100) {
+                    generateCertificate(student, courseId);
+                }
             }
-        }
 
-        JSONDatabaseManager.saveCourses(courses);
-        JSONDatabaseManager.saveUsers(users);
-        System.out.println("Lesson progress updated for student " + studentId);
-        return true;
+            JSONDatabaseManager.saveCourses(courses);
+            JSONDatabaseManager.saveUsers(users);
+            System.out.println("Lesson progress updated for student " + studentId);
+            return true;
+        }else
+            return false;
     }
 
     private static int countCompletedLessons(Student student, Course course) {

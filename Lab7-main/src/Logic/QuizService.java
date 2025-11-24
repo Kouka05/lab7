@@ -173,7 +173,7 @@ public class QuizService {
     private static int countCompletedLessons(Student student, Course course) {
         int completed = 0;
         for (Lesson lesson : course.getLessons()) {
-            LessonProgress progress = student.getLessonProgress().get(lesson.getLessonId());
+            LessonProgress progress = student.getLessonProgress().get(course.getCourseId()+lesson.getLessonId());
             if (progress != null && progress.isCompleted()) {
                 completed++;
             }

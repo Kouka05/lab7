@@ -992,6 +992,8 @@ public class StudentDashboardFrame extends JFrame {
                 // Get the updated progress to show score using the correct method signature
 
                 LessonProgress updatedProgress = currentStudent.getLessonProgress().get(courseId+lesson.getLessonId());
+
+
                 System.out.println(currentStudent.getLessonProgress());
 
                 System.out.println(updatedProgress);
@@ -1002,11 +1004,13 @@ public class StudentDashboardFrame extends JFrame {
                             "Score: " + updatedProgress.getQuizScore() + "%\n" +
                             "Attempts: " + updatedProgress.getAttempts() + "\n\n" +
                             "You can now proceed to the next lesson.";
+//                    StudentService.updateLessonProgress(currentStudent.getUserId(),courseId,lesson.getLessonId(),updatedProgress.getQuizScore());
                 } else if (updatedProgress != null) {
                     message = "Quiz submitted!\n" +
                             "Score: " + updatedProgress.getQuizScore() + "%\n" +
                             "Attempts: " + updatedProgress.getAttempts() + "\n\n" +
                             "You need 50% to pass. Please retry to unlock the next lesson.";
+//                  StudentService.updateLessonProgress(currentStudent.getUserId(),courseId,lesson.getLessonId(),updatedProgress.getQuizScore());
                 } else {
                     message = "Quiz submitted but progress data is not available.\n" +
                             "Please check your progress in the lessons list.";
@@ -1019,6 +1023,9 @@ public class StudentDashboardFrame extends JFrame {
                 quizDialog.dispose();
                 parentDialog.dispose();
                 viewCourseLessons(); // Refresh the lessons view
+                refreshCurrentStudent();
+                refreshProgress();
+
             } else {
                 JOptionPane.showMessageDialog(quizDialog,
                         "Failed to submit quiz. Please try again.",

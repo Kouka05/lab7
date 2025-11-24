@@ -5,11 +5,11 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 2,
   "type" : "instructor",
-  "createdCourses" : [ "C1", "C2", "C3" ],
-  "roleString" : "Instructor",
+  "createdCourses" : [ "C1", "C2", "C3", "C4" ],
   "instructor" : true,
-  "admin" : false,
-  "student" : false
+  "roleString" : "Instructor",
+  "student" : false,
+  "admin" : false
 }, {
   "userId" : "S2",
   "username" : "abc",
@@ -17,9 +17,12 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 1,
   "type" : "student",
-  "enrolledCourses" : [ "C1" ],
+  "enrolledCourses" : [ "C2", "C3", "C1", "C4" ],
   "progress" : {
-    "C1" : 100
+    "C2" : 100,
+    "C3" : 100,
+    "C1" : 100,
+    "C4" : 100
   },
   "lessonProgress" : {
     "L1" : {
@@ -28,13 +31,73 @@
       "attempts" : 3,
       "quizPassed" : true
     },
+    "C2L1" : {
+      "completed" : true,
+      "quizScore" : 50,
+      "attempts" : 6,
+      "quizPassed" : true
+    },
+    "C2L2" : {
+      "completed" : true,
+      "quizScore" : 66,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C2L3" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C3L1" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C3L2" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C3L3" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C3L4" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
     "C1L1" : {
       "completed" : true,
       "quizScore" : 50,
-      "attempts" : 2,
+      "attempts" : 3,
       "quizPassed" : true
     },
     "C1L2" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C4L1" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 2,
+      "quizPassed" : true
+    },
+    "C4L2" : {
+      "completed" : true,
+      "quizScore" : 100,
+      "attempts" : 1,
+      "quizPassed" : true
+    },
+    "C4L3" : {
       "completed" : true,
       "quizScore" : 100,
       "attempts" : 1,
@@ -47,11 +110,29 @@
     "courseId" : "C1",
     "issueDate" : 1763948180806,
     "certificateUrl" : null
+  }, {
+    "certificateId" : "CERT_S2_C2_1763952021782",
+    "studentId" : "S2",
+    "courseId" : "C2",
+    "issueDate" : 1763952021783,
+    "certificateUrl" : null
+  }, {
+    "certificateId" : "CERT_S2_C3_1763952814840",
+    "studentId" : "S2",
+    "courseId" : "C3",
+    "issueDate" : 1763952814840,
+    "certificateUrl" : null
+  }, {
+    "certificateId" : "CERT_S2_C4_1763953674181",
+    "studentId" : "S2",
+    "courseId" : "C4",
+    "issueDate" : 1763953674181,
+    "certificateUrl" : null
   } ],
-  "roleString" : "Student",
   "instructor" : false,
-  "admin" : false,
-  "student" : true
+  "roleString" : "Student",
+  "student" : true,
+  "admin" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -59,10 +140,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "S4",
   "username" : "alo",
@@ -76,10 +157,10 @@
   },
   "lessonProgress" : { },
   "certificates" : [ ],
+  "instructor" : false,
   "roleString" : "Student",
-  "instructor" : false,
-  "admin" : false,
-  "student" : true
+  "student" : true,
+  "admin" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -87,10 +168,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -98,10 +179,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -109,10 +190,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -120,10 +201,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "S9",
   "username" : "bac",
@@ -170,10 +251,10 @@
     "issueDate" : 1763936479587,
     "certificateUrl" : null
   } ],
+  "instructor" : false,
   "roleString" : "Student",
-  "instructor" : false,
-  "admin" : false,
-  "student" : true
+  "student" : true,
+  "admin" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -181,10 +262,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -192,10 +273,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -203,10 +284,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -214,10 +295,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -225,10 +306,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "S15",
   "username" : "abc",
@@ -249,10 +330,10 @@
     }
   },
   "certificates" : [ ],
+  "instructor" : false,
   "roleString" : "Student",
-  "instructor" : false,
-  "admin" : false,
-  "student" : true
+  "student" : true,
+  "admin" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -260,10 +341,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -271,10 +352,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -282,10 +363,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -293,10 +374,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -304,10 +385,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "S21",
   "username" : "dog",
@@ -371,10 +452,10 @@
     "issueDate" : 1763947835205,
     "certificateUrl" : null
   } ],
+  "instructor" : false,
   "roleString" : "Student",
-  "instructor" : false,
-  "admin" : false,
-  "student" : true
+  "student" : true,
+  "admin" : false
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -382,10 +463,10 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 }, {
   "userId" : "A1",
   "username" : "admin",
@@ -393,8 +474,19 @@
   "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
   "role" : 3,
   "type" : "admin",
-  "roleString" : "Admin",
   "instructor" : false,
-  "admin" : true,
-  "student" : false
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
+}, {
+  "userId" : "A1",
+  "username" : "admin",
+  "email" : "admin@gmail.com",
+  "passwordHash" : "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+  "role" : 3,
+  "type" : "admin",
+  "instructor" : false,
+  "roleString" : "Admin",
+  "student" : false,
+  "admin" : true
 } ]
